@@ -21,5 +21,5 @@ npm run sync:letters # 스티비에서 온기레터 목록을 다시 받아 src/
 
 - 대화 기능은 기본적으로 목업 응답으로 동작해요. Claude 연동 방법은 `.env.example`을 참고하세요.
 - 시연 모드: 주소 뒤에 `?demo=1`을 붙이면 미션 추가·단계 변경·날짜 이동 조작판이 나타나요.
-- 설계 문서: `docs/superpowers/specs/2026-09-26-ongi-webapp-design.md`
-- 구현 계획: `docs/superpowers/plans/2026-09-26-ongi-webapp-v1.md`
+- 설계 문서: `docs/specs/2026-09-26-ongi-webapp-design.md`
+- 구현 계획: `docs/plans/2026-09-26-ongi-webapp-v1.md`

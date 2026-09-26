@@ -1,17 +1,15 @@
 # 온기 웹앱 v1 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
->
-> 이번 실행: 사용자가 "구현해"로 즉시 구현을 지시 → **Native(executing-plans)** 방식으로 이 세션에서 순서대로 실행.
-> 커밋은 사용자 요청 시에만 한다(하네스 규칙). 각 Task 끝의 "검증" 단계로 커밋 게이트를 대신한다.
+> 작업은 Task 순서대로 진행하고, 각 단계는 체크박스(`- [ ]`)로 표시한다.
+> 기능 코드는 테스트를 먼저 쓰고(실패 확인) → 구현 → 통과 확인 순서로 만든다.
 
 **Goal:** 당근식 떠 있는 탭 바를 가진 모바일 웹앱(홈·대화 / 1일 1미션·진화 / 온기레터 아카이브 / 나의 온기)을 시연 가능한 수준으로 완성한다.
 
 **Architecture:** Next.js 16 App Router 단일 프로젝트. 모든 사용자 데이터는 클라이언트 경량 스토어(`useSyncExternalStore`) + 저장 어댑터(localStorage/메모리)에 두고, 서버는 `/api/chat` 한 개(LLM 연결부 뒤 목업 구현)만 가진다. 콘텐츠(질문·미션·단계·카테고리·레터)는 `src/data`의 정적 데이터다.
 
-**Tech Stack:** Next.js 16.3, React 19, TypeScript, Tailwind CSS v4, `@phosphor-icons/react`, `pretendard`, Vitest + Testing Library(jsdom), tsx(스크립트), Python PIL(에셋 가공, 스크래치패드 전용).
+**Tech Stack:** Next.js 16.3, React 19, TypeScript, Tailwind CSS v4, `@phosphor-icons/react`, `pretendard`, Vitest + Testing Library(jsdom), tsx(스크립트), Python PIL(에셋 가공용 로컬 스크립트, 저장소 밖).
 
-**Spec:** `docs/superpowers/specs/2026-09-26-ongi-webapp-design.md`
+**Spec:** `docs/specs/2026-09-26-ongi-webapp-design.md`
 
 ## Global Constraints
 
@@ -90,10 +88,10 @@ vitest.config.ts, vitest.setup.ts, .env.example
 **Interfaces:**
 - Produces: `@/*` → `src/*` 경로 별칭, Tailwind 토큰 클래스(`bg-bg`, `bg-surface`, `bg-yellow-500`, `bg-yellow-100`, `text-brown-600`, `text-ink-900/600/400`, `border-line`), 폰트 변수 `--font-pretendard`, `npm test`(vitest run)
 
-- [ ] **Step 1: 스크래치패드에서 create-next-app 실행 후 저장소 루트로 복사** (저장소에 README.md가 있어 직접 생성 불가)
+- [ ] **Step 1: 임시 폴더에서 create-next-app 실행 후 저장소 루트로 복사** (저장소에 README.md가 있어 직접 생성 불가)
   ```bash
-  cd $SCRATCH && npx create-next-app@16.3.6 ongi --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --yes
-  rsync -a --exclude .git --exclude README.md --exclude node_modules $SCRATCH/ongi/ $REPO/ && cd $REPO && npm install
+  cd $TMP && npx create-next-app@16.3.6 ongi --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --yes
+  rsync -a --exclude .git --exclude README.md --exclude node_modules $TMP/ongi/ $REPO/ && cd $REPO && npm install
   ```
   (옵션 이름이 버전에 따라 다르면 `npx create-next-app@16.3.6 --help`로 확인 후 동일 의미로 실행)
 - [ ] **Step 2: 의존성 추가**
@@ -136,9 +134,9 @@ vitest.config.ts, vitest.setup.ts, .env.example
 - [ ] **Step 6: 기본 페이지 정리** — create-next-app 기본 `page.tsx`·`page.module.css`·기본 SVG 제거(홈은 Task 7에서 `(tabs)/page.tsx`로 생성). 임시로 `src/app/page.tsx` 삭제 전 빌드 확인을 위해 `(tabs)/page.tsx`에 "온기" 텍스트만 둔다.
 - [ ] **Step 7: `.env.example`**
   ```
-  # LLM 연결부: mock(기본) | claude(추후 팀이 ClaudeProvider 추가 후 사용)
+  # LLM 연결부: mock(기본) | 추후 팀이 실제 LLM 구현체를 추가하면 그 이름
   LLM_PROVIDER=mock
-  # ANTHROPIC_API_KEY=
+  # (실제 LLM을 연동할 때 해당 API 키를 추가)
   ```
 - [ ] **Step 8: README에 실행 방법 추가** (`npm install` → `npm run dev` → http://localhost:3000, `npm test`, `npm run sync:letters`, 스펙·계획 문서 링크)
 - [ ] **Step 9: 검증** — `src/lib/sanity.test.ts`(`expect(1+1).toBe(2)`) 작성 → `npm test` PASS → 파일 삭제, `npm run build` 성공, `npm run lint` 오류 0
@@ -393,7 +391,7 @@ vitest.config.ts, vitest.setup.ts, .env.example
 ### Task 8: 마스코트 에셋 + `Mascot` + 진화 연출
 
 **Files:**
-- Create: `$SCRATCH/crop_mascot.py`(저장소 밖), `public/mascot/stage-1.png`~`stage-5.png`, `src/components/mascot/Mascot.tsx`, `EvolutionModal.tsx`, `EvolutionWatcher.tsx`, `EvolutionModal.test.tsx`
+- Create: `$TMP/crop_mascot.py`(저장소 밖 임시 스크립트), `public/mascot/stage-1.png`~`stage-5.png`, `src/components/mascot/Mascot.tsx`, `EvolutionModal.tsx`, `EvolutionWatcher.tsx`, `EvolutionModal.test.tsx`
 - Modify: `src/app/globals.css`(keyframes 추가), `src/app/(tabs)/layout.tsx`(EvolutionWatcher 장착)
 
 **Interfaces:**
@@ -406,7 +404,7 @@ vitest.config.ts, vitest.setup.ts, .env.example
   <EvolutionWatcher />  // realStage > lastSeenStage면 모달 표시 → 닫을 때 setLastSeenStage(realStage)
   ```
 
-- [ ] **Step 1: 에셋 자르기** — 사용자 시안(`$SCRATCH/../images/3.png`, 1712×664)에서 배경색(`#FDFAF5` ±6)과 다른 픽셀의 열 분포로 새 5마리의 x 범위를 찾고, y는 라벨 알약(노란 원형 배경) 위쪽까지로 제한 → 각 새를 정사각형(여백 포함, 가로 중심·바닥 정렬) 캔버스 배경 `#FDFAF5`에 배치 → 512×512 PNG 저장. 결과를 이미지로 열어 5장 모두 잘림 없는지 육안 확인
+- [ ] **Step 1: 에셋 자르기** — 팀 마스코트 시안(5단계 합성 이미지, 1712×664)에서 배경색(`#FDFAF5` ±6)과 다른 픽셀의 열 분포로 새 5마리의 x 범위를 찾고, y는 라벨 알약(노란 원형 배경) 위쪽까지로 제한 → 각 새를 정사각형(여백 포함, 가로 중심·바닥 정렬) 캔버스 배경 `#FDFAF5`에 배치 → 512×512 PNG 저장. 결과를 이미지로 열어 5장 모두 잘림 없는지 육안 확인
 - [ ] **Step 2: 1단계 분할 좌표 측정** — `stage-1.png`에서 금 간 틈(어두운 띠)과 눈 영역의 y 범위·지그재그 꼭짓점을 픽셀 분석으로 구해 `clip-path: polygon()` 백분율 좌표 3세트(윗껍질 / 틈 / 아랫껍질) 산출, 결과 이미지를 합성해 확인
 - [ ] **Step 3: 실패 테스트** — `EvolutionModal.test.tsx`: `open` + `to=2` → "뱁새가 자랐어요!"와 `getStage(2).name`·`description` 표시, "홈에서 만나기" 클릭 → `onClose` 호출 / `open=false` → 아무것도 렌더 안 함
 - [ ] **Step 4: 실패 확인**
@@ -489,7 +487,7 @@ vitest.config.ts, vitest.setup.ts, .env.example
 
 **Files:**
 - Create: `src/lib/letters.ts`, `src/lib/letters.test.ts`, `scripts/sync-letters.ts`, `src/data/letters.json`
-- (분류 작업용 임시 파일은 스크래치패드에만)
+- (분류 작업용 임시 파일은 저장소 밖 임시 폴더에만)
 
 **Interfaces:**
 - Consumes: `CategoryId`, `isCategoryId`, `LINKS.archiveApi` (letters.ts는 스크립트에서도 쓰므로 `@/` 별칭 없이 상대 경로만 import)
@@ -508,7 +506,7 @@ vitest.config.ts, vitest.setup.ts, .env.example
 - [ ] **Step 1: 실패 테스트** — `cleanText('$%name%$ 온기님, 안녕')` → `'온기님, 안녕'` / `cleanText('오늘 하루도 한 발자국 나아간 온기 온기님께💌')` → `'오늘 하루도 한 발자국 나아간 온기님께💌'` / `cleanText('💛 님은 언제 \'온기\'를 느끼시나요?')` → `"💛 온기님은 언제 '온기'를 느끼시나요?"` / `cleanText('  두   칸  ')` → `'두 칸'` / `cleanText('님, 소중한 사람과의')` → `'온기님, 소중한 사람과의'` / `extractEmoji('해야 할 일을 자꾸만 미루게 돼요 📝')` → `'📝'`, `extractEmoji('☀️ 좋아')` → `'☀️'`, 이모지 없음 → null / `mergeLetters`: 기존 category 'love' 보존·신규는 uncategorized로 added에 포함·정렬 / `filterLetters(…, 'love')`는 love만 최신순
 - [ ] **Step 2: 실패 확인**
 - [ ] **Step 3: 구현** — `scripts/sync-letters.ts`: fetch → `mergeLetters` → `src/data/letters.json` 저장(2칸 들여쓰기) → added 목록과 uncategorized 개수 출력.
-- [ ] **Step 4: 초기 데이터 생성 + 분류** — `npm run sync:letters`로 164편 생성 → 스크래치패드에 `pid|제목|미리보기` 목록 출력 → 164편을 스펙 §5.2 기준으로 분류한 `pid → category` 매핑을 작성해 JSON에 반영(분류 기준: 고민의 주된 대상. 월말 정리·결산·100번째 편지·연말 인사·광고 = news) → 카테고리별 개수 출력(각 5개 이상인지 확인)
+- [ ] **Step 4: 초기 데이터 생성 + 분류** — `npm run sync:letters`로 164편 생성 → 임시 폴더에 `pid|제목|미리보기` 목록 출력 → 164편을 스펙 §5.2 기준으로 분류한 `pid → category` 매핑을 작성해 JSON에 반영(분류 기준: 고민의 주된 대상. 월말 정리·결산·100번째 편지·연말 인사·광고 = news) → 카테고리별 개수 출력(각 5개 이상인지 확인)
 - [ ] **Step 5: 검증 테스트 추가** — `letters.test.ts`에 실제 JSON 검사: 길이 ≥ 164, id 고유, uncategorized 0, 모든 카테고리 5개 이상 → PASS
 
 ---
@@ -603,14 +601,14 @@ vitest.config.ts, vitest.setup.ts, .env.example
 
 ---
 
-### Task 18 (사용자 승인 필요): 레터 그림 50장 생성
+### Task 18 (팀 승인 필요): 레터 그림 50장 생성
 
 **Files:**
 - Create: `public/letters/{id}.webp` (최대 50개)
 - Modify: `src/data/letters.json`(`image` 필드)
 
 - [ ] **Step 1: 대상 목록** — 카테고리별 최신 5편 추출(제목·미리보기) → 장면 설명 50개 작성(마스코트 3D 털뭉치 뱁새 + 주제 소품/장면, 크림 배경 `#FDFAF5`, 부드러운 자연광, 글자 없음, 4:3)
-- [ ] **Step 2: 비용 확인** — 힉스필드 잔여 크레딧·모델별 예상 비용 조회 → **사용자에게 장수·예상 크레딧을 보여주고 승인받기** (승인 전 생성 금지)
-- [ ] **Step 3: 참고 이미지 업로드** — 마스코트 시안을 참고 이미지로 업로드(업로드 위젯은 사용자 조작 필요)
-- [ ] **Step 4: 생성** — 1~2장 시험 생성 → 사용자 확인 → 나머지 일괄 생성
+- [ ] **Step 2: 비용 확인** — 힉스필드 잔여 크레딧·모델별 예상 비용 조회 → **팀에 장수·예상 크레딧을 공유하고 승인받기** (승인 전 생성 금지)
+- [ ] **Step 3: 참고 이미지 업로드** — 마스코트 시안을 참고 이미지로 업로드(업로드는 직접 진행)
+- [ ] **Step 4: 생성** — 1~2장 시험 생성 → 팀 확인 → 나머지 일괄 생성
 - [ ] **Step 5: 변환·반영** — 800×600 webp 변환 → `public/letters/{id}.webp` → JSON `image` 기록 → 화면 확인
