@@ -1,0 +1,116 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AppBar } from '@/components/layout/AppBar';
+import { HelplineCard } from '@/components/ui/HelplineCard';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { completedCount, daysTogether, displayStage, monthCompletedCount, realStage, talkedDaysCount } from '@/lib/storage/selectors';
+import { useOngi, useStore, useToday } from '@/lib/storage/useOngi';
+import { ChatRecordList } from './ChatRecordList';
+import { GrowthAlbum } from './GrowthAlbum';
+import { OngiLinks } from './OngiLinks';
+import { ProfileCard } from './ProfileCard';
+import { SettingsSection } from './SettingsSection';
+import { StatsTiles } from './StatsTiles';
+
+const APP_VERSION = '0.1.0';
+const SECRET_TAPS = 5;
+const SECRET_WINDOW_MS = 2000;
+
+function SectionTitle({ children }: { children: string }) {
+  return <h2 className="mb-3 text-[15px] font-bold text-ink-900">{children}</h2>;
+}
+
+export function MeScreen() {
+  const store = useStore();
+  const router = useRouter();
+  const state = useOngi((s) => s);
+  const today = useToday();
+  const taps = useRef<number[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
+
+  if (!state || !today) {
+    return (
+      <>
+        <AppBar title="나의 온기" />
+        <div className="space-y-4 px-5">
+          <Skeleton className="h-44" />
+          <Skeleton className="h-20" />
+        </div>
+      </>
+    );
+  }
+
+  function showToast(message: string) {
+    setToast(message);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2000);
+  }
+
+  // 버전 정보를 2초 안에 5번 누르면 시연 모드를 켜고 끈다
+  function onVersionTap() {
+    const now = Date.now();
+    taps.current = [...taps.current, now].filter((t) => now - t <= SECRET_WINDOW_MS);
+    if (taps.current.length < SECRET_TAPS) return;
+    taps.current = [];
+    const next = !store.getState().settings.demoMode;
+    store.demo.setEnabled(next);
+    showToast(next ? '시연 모드를 켰어요' : '시연 모드를 껐어요');
+  }
+
+  const [year, month] = today.split('-').map(Number);
+
+  return (
+    <>
+      <AppBar title="나의 온기" />
+      <div className="space-y-7 px-5">
+        <ProfileCard
+          birdName={state.profile.birdName}
+          stage={displayStage(state)}
+          count={completedCount(state)}
+          daysTogether={daysTogether(state, today)}
+          onRename={(name) => store.renameBird(name)}
+        />
+        <StatsTiles total={completedCount(state)} thisMonth={monthCompletedCount(state, year, month)} talkedDays={talkedDaysCount(state)} />
+
+        <section>
+          <SectionTitle>성장 앨범</SectionTitle>
+          <GrowthAlbum reached={realStage(state)} />
+        </section>
+
+        <section>
+          <SectionTitle>마음 기록</SectionTitle>
+          <ChatRecordList chats={state.chats} today={today} />
+        </section>
+
+        <section>
+          <SectionTitle>온기와 함께하기</SectionTitle>
+          <OngiLinks />
+        </section>
+
+        <HelplineCard />
+
+        <SettingsSection
+          version={APP_VERSION}
+          onVersionTap={onVersionTap}
+          onReset={() => {
+            store.resetAll();
+            router.push('/');
+          }}
+        />
+      </div>
+
+      {toast && (
+        <p
+          role="status"
+          className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+92px)] z-40 mx-auto w-fit animate-[ongi-pop_0.2s_ease-out] rounded-full bg-ink-900 px-4 py-2.5 text-sm font-medium text-white"
+        >
+          {toast}
+        </p>
+      )}
+    </>
+  );
+}

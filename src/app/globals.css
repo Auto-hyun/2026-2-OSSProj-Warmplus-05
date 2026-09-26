@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+/* 온기 디자인 토큰 — 노랑은 포인트로만, 노란 글씨·형광·그라데이션 금지 */
+@theme {
+  --color-bg: #fdfaf5; /* 앱 바탕 (마스코트 시안 배경과 동일) */
+  --color-surface: #ffffff; /* 카드, 시트 */
+  --color-yellow-500: #f7d749; /* 주요 버튼(글씨는 ink-900), 진행 바 */
+  --color-yellow-100: #fff4cc; /* 선택 탭 배경, 내 말풍선 */
+  --color-brown-600: #85601e; /* 강조 텍스트, 링크 */
+  --color-ink-900: #2f2b28; /* 본문 */
+  --color-ink-600: #6b655f; /* 보조 텍스트 */
+  --color-ink-400: #a39d96; /* 비활성 */
+  --color-line: #efe9df; /* 구분선, 테두리 */
+
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-ink-900);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 가로 스크롤 영역의 스크롤바 숨기기 (카테고리 칩) */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 공용 애니메이션 */
+@keyframes ongi-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes ongi-sheet {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes ongi-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+/* 마스코트: 숨쉬기 (발은 바닥에 붙인 채) */
+@keyframes ongi-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.025, 1.035);
+  }
+}
+
+/* 마스코트: 누르면 폴짝 */
+@keyframes ongi-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10%);
+  }
+  75% {
+    transform: translateY(0) scale(1.04, 0.96);
+  }
+}
+
+/* 1단계 알: 윗껍질 들썩들썩 */
+@keyframes ongi-lid {
+  0%,
+  50%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  57% {
+    transform: translateY(-3.4%) rotate(-1deg);
+  }
+  63% {
+    transform: translateY(-0.6%) rotate(0);
+  }
+  70% {
+    transform: translateY(-2.6%) rotate(1deg);
+  }
+  78% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+/* 진화 연출: 이전 모습이 흔들리고 → 새 모습이 커지며 등장 */
+@keyframes ongi-wiggle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-6deg);
+  }
+  40% {
+    transform: rotate(6deg);
+  }
+  60% {
+    transform: rotate(-4deg);
+  }
+  80% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes ongi-grow {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* 대화방: 답장 쓰는 중 점 세 개 */
+@keyframes ongi-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* 기기에서 '동작 줄이기'를 켜면 모든 애니메이션 정지 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
