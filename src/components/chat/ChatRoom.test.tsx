@@ -128,6 +128,11 @@ describe('ChatRoom', () => {
     expect(screen.getByRole('textbox', { name: '메시지 입력' }).className).toContain('text-base');
   });
 
+  it('입력창 안내 문구는 "내 생각을 얘기해 보세요"', async () => {
+    await renderRoom();
+    expect(screen.getByRole('textbox', { name: '메시지 입력' })).toHaveAttribute('placeholder', '내 생각을 얘기해 보세요');
+  });
+
   it('답장을 기다리는 사이 기록을 모두 지우면, 늦게 온 답장을 새 기록에 남기지 않는다', async () => {
     let release!: () => void;
     vi.stubGlobal(

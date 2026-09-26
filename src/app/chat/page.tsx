@@ -4,7 +4,7 @@ import { ChatScreen } from '@/components/chat/ChatScreen';
 import { MobileShell } from '@/components/layout/MobileShell';
 import { NamingGate } from '@/components/onboarding/NamingGate';
 
-export const metadata: Metadata = { title: '털어놓기 · 온기' };
+export const metadata: Metadata = { title: '내 생각 얘기하기 · 온기' };
 
 export default function ChatPage() {
   return (

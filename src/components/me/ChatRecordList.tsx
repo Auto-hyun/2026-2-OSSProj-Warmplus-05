@@ -5,7 +5,7 @@ import type { ChatDay } from '@/lib/storage/types';
 
 type Props = { chats: Record<DayKey, ChatDay>; today: DayKey };
 
-/** 마음 기록: 털어놓은 날의 대화 목록 (최신순). 누르면 그날 대화를 다시 읽는다 */
+/** 마음 기록: 내 생각을 얘기한 날의 대화 목록 (최신순). 누르면 그날 대화를 다시 읽는다 */
 export function ChatRecordList({ chats, today }: Props) {
   const days = Object.entries(chats)
     .map(([date, day]) => ({ date, day, first: day.messages.find((m) => m.role === 'user')?.content }))
@@ -13,7 +13,7 @@ export function ChatRecordList({ chats, today }: Props) {
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 
   if (days.length === 0) {
-    return <p className="rounded-2xl bg-surface px-4 py-6 text-center text-sm text-ink-400">아직 털어놓은 이야기가 없어요.</p>;
+    return <p className="rounded-2xl bg-surface px-4 py-6 text-center text-sm text-ink-400">아직 나눈 이야기가 없어요.</p>;
   }
 
   return (

@@ -48,7 +48,7 @@ export function ChatInput({ busy, onSend }: Props) {
           maxLength={MAX_USER_CHARS}
           value={input}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="편하게 털어놓아 보세요"
+          placeholder="내 생각을 얘기해 보세요"
           className="max-h-[120px] min-h-11 flex-1 resize-none rounded-2xl border border-line bg-surface px-4 py-2.5 text-base leading-relaxed text-ink-900 outline-none placeholder:text-ink-400 focus:border-brown-600/40"
         />
         <button

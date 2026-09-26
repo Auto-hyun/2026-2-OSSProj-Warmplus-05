@@ -4,6 +4,7 @@ import { ChatRecordList } from './ChatRecordList';
 import { GrowthAlbum } from './GrowthAlbum';
 import { ProfileCard } from './ProfileCard';
 import { SettingsSection } from './SettingsSection';
+import { StatsTiles } from './StatsTiles';
 import type { ChatDay } from '@/lib/storage/types';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn(), push: vi.fn(), replace: vi.fn() }) }));
@@ -31,7 +32,7 @@ describe('ChatRecordList', () => {
       : [{ role: 'assistant', content: '답장만', at: '' }],
   });
 
-  it('털어놓은 날만 최신순으로, 첫 이야기와 함께 보여준다', () => {
+  it('얘기한 날만 최신순으로, 첫 이야기와 함께 보여준다', () => {
     render(
       <ChatRecordList
         today="2026-09-26"
@@ -51,7 +52,14 @@ describe('ChatRecordList', () => {
 
   it('기록이 없으면 안내 문구', () => {
     render(<ChatRecordList today="2026-09-26" chats={{}} />);
-    expect(screen.getByText('아직 털어놓은 이야기가 없어요.')).toBeInTheDocument();
+    expect(screen.getByText('아직 나눈 이야기가 없어요.')).toBeInTheDocument();
+  });
+});
+
+describe('StatsTiles', () => {
+  it('누적 미션·이번 달 미션·얘기한 날을 보여준다', () => {
+    render(<StatsTiles total={8} thisMonth={3} talkedDays={5} />);
+    expect(screen.getByText('얘기한 날').nextElementSibling).toHaveTextContent('5일');
   });
 });
 

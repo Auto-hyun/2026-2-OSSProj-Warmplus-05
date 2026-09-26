@@ -21,7 +21,7 @@ export function monthCompletedCount(s: OngiState, year: number, month: number): 
   return Object.keys(s.missions.records).filter((d) => isSameMonth(d, year, month)).length;
 }
 
-/** 내가 한 마디라도 털어놓은 날 수 */
+/** 내가 한 마디라도 얘기한 날 수 */
 export function talkedDaysCount(s: OngiState): number {
   return Object.values(s.chats).filter((day) => day.messages.some((m) => m.role === 'user')).length;
 }

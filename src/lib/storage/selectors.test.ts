@@ -30,7 +30,7 @@ describe('selectors', () => {
     expect(monthCompletedCount(s, 2026, 9)).toBe(2);
   });
 
-  it('털어놓은 날은 내가 한 마디라도 한 날만 센다', () => {
+  it('얘기한 날은 내가 한 마디라도 한 날만 센다', () => {
     const s = createDefaultState(NOW, 'id');
     s.chats['2026-09-20'] = { question: 'Q', bridgeShown: false, messages: [{ role: 'user', content: 'a', at: '' }] };
     s.chats['2026-09-21'] = { question: 'Q', bridgeShown: false, messages: [{ role: 'assistant', content: 'b', at: '' }] };
