@@ -1,7 +1,8 @@
 /**
- * 위기 표현 감지. 공백을 지운 뒤 패턴을 찾는다.
+ * 위기 표현 감지. 공백·문장부호·ㅋㅎㅠㅜ를 지운 뒤 패턴을 찾는다.
  * "배고파 죽겠다" 같은 관용 표현을 잡지 않도록 '죽겠' 계열은 넣지 않는다.
- * 키워드 방식이라 오탐·미탐이 있을 수 있다(v1에서 감수, Claude 연동 시 프롬프트 지침과 병행).
+ * 키워드 방식이라 오탐·미탐이 있을 수 있다(v1에서 감수, 실제 LLM 연동 시 프롬프트 지침과 병행).
+ * 놓치는 것보다 한 번 더 도움 카드를 보여주는 쪽이 안전하므로, 애매한 표현은 감지하는 쪽으로 둔다.
  */
 const CRISIS_PATTERNS = [
   '자살',
@@ -9,11 +10,20 @@ const CRISIS_PATTERNS = [
   '죽고싶',
   '죽고만싶',
   '죽어버리고싶',
+  '죽어버릴',
   '죽을래',
+  '죽을까',
+  '죽어야',
   '살기싫',
-  '살고싶지않',
+  '살고싶지',
+  '그만살고싶',
+  '살아서뭐해',
+  '살아서뭐하',
+  '살이유가없',
   '사라지고싶',
+  '사라져버리고싶',
   '없어지고싶',
+  '없어져버리고싶',
   '극단적선택',
   '목숨을끊',
   '손목을긋',
@@ -23,8 +33,10 @@ const CRISIS_PATTERNS = [
   '유서를',
 ];
 
+const NOISE = /[\s.…,!?~·'"‘’“”()[\]ㅋㅎㅠㅜ]+/g;
+
 export function detectCrisis(text: string): boolean {
-  const normalized = text.replace(/\s+/g, '');
+  const normalized = text.replace(NOISE, '');
   return CRISIS_PATTERNS.some((pattern) => normalized.includes(pattern));
 }
 

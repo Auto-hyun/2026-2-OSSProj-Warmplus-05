@@ -35,6 +35,13 @@ export function todayKey(now: Date = new Date(), dayOffset = 0): DayKey {
   return dayOffset === 0 ? key : addDays(key, dayOffset);
 }
 
+/** 다음 한국 자정까지 남은 밀리초 (한국은 서머타임이 없어 UTC+9 고정) */
+export function msUntilNextKstMidnight(now: Date): number {
+  const kstMs = now.getTime() + 9 * 3_600_000;
+  const intoDay = ((kstMs % MS_PER_DAY) + MS_PER_DAY) % MS_PER_DAY;
+  return MS_PER_DAY - intoDay;
+}
+
 export function addDays(key: DayKey, n: number): DayKey {
   return fromDayNumber(toDayNumber(key) + n);
 }

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CompleteSheet } from './CompleteSheet';
 import { MissionCalendar } from './MissionCalendar';
@@ -110,5 +110,30 @@ describe('MissionScreen (완료 흐름)', () => {
     expect(screen.getByText('오늘 미션 완료!')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '9월 26일, 미션 완료, 오늘' })).toBeInTheDocument();
     expect(screen.getByText('이번 달 1일 · 누적 1개')).toBeInTheDocument();
+  });
+});
+
+describe('MissionScreen (완료 시트를 연 채 자정이 지날 때)', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('새 날짜에 엉뚱한 미션으로 기록하지 않고, 날짜가 바뀌었다고 알려준다', async () => {
+    localStorage.clear();
+    // Testing Library는 상호작용 뒤 setTimeout(0)을 기다린다 → 가짜 시계가 실제 시간과 함께 흐르도록(shouldAdvanceTime)
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
+    vi.setSystemTime(new Date('2026-09-26T14:59:00Z')); // 한국 9/26 23:59
+    vi.resetModules();
+    const { MissionScreen } = await import('./MissionScreen');
+    const { getBrowserStore } = await import('@/lib/storage/useOngi');
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<MissionScreen />);
+
+    await user.click(screen.getByRole('button', { name: '완료했어요' }));
+    act(() => {
+      vi.advanceTimersByTime(2 * 60_000); // 한국 9/27 00:01
+    });
+    await user.click(screen.getByRole('button', { name: '완료' }));
+
+    expect(getBrowserStore().getState().missions.records).toEqual({});
+    expect(screen.getByRole('status')).toHaveTextContent('날짜가 바뀌었어요');
   });
 });

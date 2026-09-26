@@ -7,6 +7,7 @@ import {
   formatKoreanDate,
   isSameMonth,
   monthGrid,
+  msUntilNextKstMidnight,
   todayKey,
 } from './date';
 
@@ -76,5 +77,19 @@ describe('monthGrid (일요일 시작 달력 칸)', () => {
     for (let m = 1; m <= 12; m++) {
       expect(monthGrid(2026, m).length % 7).toBe(0);
     }
+  });
+});
+
+describe('msUntilNextKstMidnight (다음 한국 자정까지 남은 시간)', () => {
+  it('한국 23:59면 1분 남았다', () => {
+    expect(msUntilNextKstMidnight(new Date('2026-09-26T14:59:00Z'))).toBe(60_000);
+  });
+
+  it('한국 자정 정각이면 하루가 남았다', () => {
+    expect(msUntilNextKstMidnight(new Date('2026-09-26T15:00:00Z'))).toBe(86_400_000);
+  });
+
+  it('한국 정오면 12시간 남았다', () => {
+    expect(msUntilNextKstMidnight(new Date('2026-09-26T03:00:00Z'))).toBe(43_200_000);
   });
 });

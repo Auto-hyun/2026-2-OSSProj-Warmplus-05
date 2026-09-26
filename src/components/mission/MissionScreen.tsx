@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppBar } from '@/components/layout/AppBar';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Skeleton } from '@/components/ui/Skeleton';
+import type { Mission } from '@/data/missions';
 import { getStage } from '@/data/stages';
 import type { DayKey } from '@/lib/date';
 import { missionFor, nextStageInfo } from '@/lib/progress';
@@ -24,9 +25,10 @@ export function MissionScreen() {
   const state = useOngi((s) => s);
   const today = useToday();
   const [view, setView] = useState<{ year: number; month: number } | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  /** 완료 시트를 연 순간의 날짜·미션 (그사이 자정이 지나도 이 날짜로만 완료를 시도한다) */
+  const [sheet, setSheet] = useState<{ dayKey: DayKey; mission: Mission } | null>(null);
   const [pickedDay, setPickedDay] = useState<DayKey | null>(null);
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
@@ -52,11 +54,17 @@ export function MissionScreen() {
   const growth = nextStageInfo(total);
 
   function complete(note: string) {
-    store.completeMission({ note });
-    setSheetOpen(false);
-    setToast(true);
+    const result = store.completeMission({ note, dayKey: sheet?.dayKey });
+    setSheet(null);
+    setToast(
+      result.ok
+        ? '잘했어요! 뱁새가 기뻐해요'
+        : result.reason === 'day-changed'
+          ? '자정이 지나 날짜가 바뀌었어요. 오늘의 미션을 확인해 주세요.'
+          : '오늘 미션은 이미 완료했어요.',
+    );
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(false), 2000);
+    toastTimer.current = setTimeout(() => setToast(null), 2500);
   }
 
   return (
@@ -69,7 +77,7 @@ export function MissionScreen() {
             done={Boolean(record)}
             note={record?.note}
             canSwap={canSwap}
-            onComplete={() => setSheetOpen(true)}
+            onComplete={() => setSheet({ dayKey: today, mission })}
             onSwap={() => store.swapMission()}
           />
           {!record && <p className="mt-3 text-center text-[13px] text-ink-400">오늘 못 해도 괜찮아요. 내일 또 만나요.</p>}
@@ -104,7 +112,7 @@ export function MissionScreen() {
         </section>
       </div>
 
-      <CompleteSheet open={sheetOpen} mission={mission} onClose={() => setSheetOpen(false)} onSubmit={complete} />
+      <CompleteSheet open={sheet !== null} mission={sheet?.mission ?? mission} onClose={() => setSheet(null)} onSubmit={complete} />
       <DayDetailSheet dayKey={pickedDay} record={pickedDay ? state.missions.records[pickedDay] : undefined} onClose={() => setPickedDay(null)} />
 
       {toast && (
@@ -112,7 +120,7 @@ export function MissionScreen() {
           role="status"
           className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+92px)] z-40 mx-auto w-fit animate-[ongi-pop_0.2s_ease-out] rounded-full bg-ink-900 px-4 py-2.5 text-sm font-medium text-white"
         >
-          잘했어요! 뱁새가 기뻐해요
+          {toast}
         </p>
       )}
     </>

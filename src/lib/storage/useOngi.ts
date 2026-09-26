@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { todayKey, type DayKey } from '@/lib/date';
+import { addDays, msUntilNextKstMidnight, todayKey, type DayKey } from '@/lib/date';
 import { createLocalStorageAdapter, createMemoryAdapter } from './adapters';
 import { createStore, type OngiStore } from './store';
 import type { OngiState } from './types';
@@ -42,10 +42,38 @@ export function useStore(): OngiStore {
   return getBrowserStore();
 }
 
+/**
+ * 날짜 변화 구독: 한국 자정이 되면, 또는 잠들었던 화면으로 돌아오면(visibilitychange·focus·pageshow)
+ * 오늘 날짜를 다시 확인한다. 화면을 켜둔 채 자정을 넘겨도 "오늘"이 어제에 머물지 않게.
+ */
+function subscribeDay(onChange: () => void) {
+  let timer: ReturnType<typeof setTimeout>;
+  const schedule = () => {
+    timer = setTimeout(() => {
+      onChange();
+      schedule();
+    }, msUntilNextKstMidnight(new Date()) + 500);
+  };
+  schedule();
+  window.addEventListener('focus', onChange);
+  window.addEventListener('pageshow', onChange);
+  document.addEventListener('visibilitychange', onChange);
+  return () => {
+    clearTimeout(timer);
+    window.removeEventListener('focus', onChange);
+    window.removeEventListener('pageshow', onChange);
+    document.removeEventListener('visibilitychange', onChange);
+  };
+}
+
+const getDaySnapshot = () => todayKey(new Date());
+
 /** 한국 날짜 기준 오늘 (시연 날짜 이동 포함). 하이드레이션 전에는 undefined */
 export function useToday(): DayKey | undefined {
   const offset = useOngi((s) => s.settings.dayOffset);
-  return offset === undefined ? undefined : todayKey(new Date(), offset);
+  const base = useSyncExternalStore(subscribeDay, getDaySnapshot, serverSnapshot);
+  if (offset === undefined || base === undefined) return undefined;
+  return offset === 0 ? base : addDays(base, offset);
 }
 
 /** 기록이 기기에 저장되는지. 하이드레이션 전에는 undefined */

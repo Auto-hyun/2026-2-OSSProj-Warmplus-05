@@ -59,6 +59,20 @@ describe('completeMission', () => {
   });
 });
 
+describe('completeMission (자정을 넘긴 완료)', () => {
+  it('화면에 보이던 날짜가 오늘이 아니면 기록하지 않고 이유를 알려준다', () => {
+    const { store } = freshStore();
+    expect(store.completeMission({ dayKey: '2026-09-25' })).toEqual({ ok: false, reason: 'day-changed' });
+    expect(completedCount(store.getState())).toBe(0);
+  });
+
+  it('화면에 보이던 날짜가 오늘이면 기록한다', () => {
+    const { store } = freshStore();
+    expect(store.completeMission({ dayKey: '2026-09-26' }).ok).toBe(true);
+    expect(store.getState().missions.records['2026-09-26']).toBeDefined();
+  });
+});
+
 describe('swapMission', () => {
   it('하루 한 번 교체 후보로 바꾸고, 완료 기록도 바뀐 미션이다', () => {
     const { store } = freshStore();

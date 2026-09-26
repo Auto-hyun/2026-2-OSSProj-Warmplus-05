@@ -14,7 +14,8 @@ export type OngiStore = {
   subscribe(listener: () => void): () => void;
   /** 한국 날짜 기준 오늘 (시연 날짜 이동 포함) */
   todayKey(): DayKey;
-  completeMission(input?: { note?: string }): { ok: boolean };
+  /** dayKey: 화면에 보이던 날짜. 그사이 자정이 지나 오늘이 바뀌었으면 기록하지 않는다 */
+  completeMission(input?: { note?: string; dayKey?: DayKey }): { ok: boolean; reason?: 'already-done' | 'day-changed' };
   swapMission(): { ok: boolean };
   appendChatMessage(key: DayKey, question: string, msg: { role: ChatRole; content: string; kind?: 'safety' }): void;
   markBridgeShown(key: DayKey): void;
@@ -60,9 +61,10 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
 
     todayKey: today,
 
-    completeMission({ note } = {}) {
+    completeMission({ note, dayKey } = {}) {
       const key = today();
-      if (state.missions.records[key]) return { ok: false };
+      if (dayKey && dayKey !== key) return { ok: false, reason: 'day-changed' };
+      if (state.missions.records[key]) return { ok: false, reason: 'already-done' };
       const mission = missionFor(state.profile.installId, key, state.missions.swaps[key]);
       const trimmed = note?.trim().slice(0, NOTE_MAX);
       set({

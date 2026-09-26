@@ -60,3 +60,32 @@ describe('useToday / useIsPersistent', () => {
     expect(result.current.persistent).toBe(true);
   });
 });
+
+describe('useToday (화면을 켜둔 채 자정이 지날 때)', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('한국 자정이 지나면 저절로 새 날짜로 바뀐다', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+    vi.setSystemTime(new Date('2026-09-26T14:59:00Z')); // 한국 9/26 23:59
+    const { useToday } = await loadHooks();
+    const { result } = renderHook(() => useToday());
+    expect(result.current).toBe('2026-09-26');
+    act(() => {
+      vi.advanceTimersByTime(2 * 60_000);
+    });
+    expect(result.current).toBe('2026-09-27');
+  });
+
+  it('잠든 화면으로 돌아오면(visibilitychange) 날짜를 다시 확인한다', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-26T14:59:00Z'));
+    const { useToday } = await loadHooks();
+    const { result } = renderHook(() => useToday());
+    expect(result.current).toBe('2026-09-26');
+    vi.setSystemTime(new Date('2026-09-26T23:00:00Z')); // 한국 9/27 08:00 (타이머 없이 시간만 흐름)
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(result.current).toBe('2026-09-27');
+  });
+});
