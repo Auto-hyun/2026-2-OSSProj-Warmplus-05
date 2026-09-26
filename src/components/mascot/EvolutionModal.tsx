@@ -3,24 +3,30 @@
 import { useEffect, useState } from 'react';
 import { getStage, type StageNo } from '@/data/stages';
 import { Button } from '@/components/ui/Button';
+import { useModal } from '@/components/ui/useModal';
+import { josa } from '@/lib/josa';
+import { DEFAULT_BIRD_NAME } from '@/lib/storage/adapters';
 import { Mascot } from './Mascot';
 
 type Props = {
   open: boolean;
   from: StageNo;
   to: StageNo;
+  /** 지은 이름 */
+  name?: string;
   onClose: () => void;
 };
 
 /** 뱁새가 자랐을 때 보여주는 전체 화면 축하 연출: 이전 모습이 흔들리다 새 모습으로 바뀐다 */
-export function EvolutionModal({ open, from, to, onClose }: Props) {
+export function EvolutionModal({ open, from, to, name = DEFAULT_BIRD_NAME, onClose }: Props) {
   if (!open) return null;
   // 열릴 때마다 새로 마운트해서 '흔들림 → 등장' 연출을 처음부터 다시 보여준다
-  return <EvolutionScene key={`${from}-${to}`} from={from} to={to} onClose={onClose} />;
+  return <EvolutionScene key={`${from}-${to}`} from={from} to={to} name={name} onClose={onClose} />;
 }
 
-function EvolutionScene({ from, to, onClose }: Omit<Props, 'open'>) {
+function EvolutionScene({ from, to, name, onClose }: Omit<Props, 'open'> & { name: string }) {
   const [grown, setGrown] = useState(false);
+  const panelRef = useModal<HTMLDivElement>(true, onClose);
 
   useEffect(() => {
     const t = setTimeout(() => setGrown(true), 1100);
@@ -31,14 +37,16 @@ function EvolutionScene({ from, to, onClose }: Omit<Props, 'open'>) {
 
   return (
     <div
+      ref={panelRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="evolution-title"
-      className="fixed inset-0 z-[60] mx-auto flex max-w-[480px] animate-[ongi-fade_0.3s_ease-out] flex-col items-center justify-center bg-bg px-8 text-center"
+      tabIndex={-1}
+      className="fixed inset-0 z-[60] mx-auto flex max-w-[480px] animate-[ongi-fade_0.3s_ease-out] flex-col items-center justify-center bg-bg px-8 text-center outline-none"
     >
       <p className="text-sm font-semibold text-brown-600">축하해요</p>
       <h2 id="evolution-title" className="mt-1 text-2xl font-bold text-ink-900">
-        뱁새가 자랐어요!
+        {josa(name, '이/가')} 자랐어요!
       </h2>
       <div className="mt-8 grid size-[208px] place-items-center">
         {grown ? (

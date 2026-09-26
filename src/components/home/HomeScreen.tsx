@@ -56,16 +56,16 @@ export function HomeScreen() {
 
         <section aria-label="오늘의 뱁새" className="mt-5 flex flex-col items-center">
           <QuestionBubble question={questionFor(today)} />
-          <Mascot stage={stage} size="lg" interactive className="mt-4" />
+          <Mascot stage={stage} size="lg" interactive name={state.profile.birdName} className="mt-4" />
           <p className="mt-2 text-lg font-bold text-ink-900">{state.profile.birdName}</p>
           <p className="text-sm text-ink-600">{getStage(stage).name}</p>
           <div className="mt-3 flex w-full justify-center">
-            <GrowthLine count={count} />
+            <GrowthLine count={count} name={state.profile.birdName} />
           </div>
         </section>
 
         <Link href="/chat" className={cn(buttonClass('primary', 'lg', true), 'mt-5')}>
-          {talkedToday ? '이어서 이야기하기' : '편하게 털어놓기'}
+          {talkedToday ? '이어서 이야기하기' : '내 생각 얘기하기'}
         </Link>
         <div className="mt-3">
           <TodayMissionShortcut mission={mission} done={done} />

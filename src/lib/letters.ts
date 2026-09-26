@@ -38,7 +38,7 @@ export function cleanText(s: string): string {
 }
 
 // 그림 이모지 + (변형 선택자 | 피부색 | ZWJ로 이어진 이모지)
-const EMOJI = /\p{Extended_Pictographic}(?:️|[\u{1F3FB}-\u{1F3FF}]|‍\p{Extended_Pictographic})*/gu;
+const EMOJI = /\p{Extended_Pictographic}(?:\uFE0F|[\u{1F3FB}-\u{1F3FF}]|\u200D\p{Extended_Pictographic})*/gu;
 
 /** 제목 속 마지막 그림 이모지 (기본 카드에 크게 보여줄 용도) */
 export function extractEmoji(title: string): string | null {
@@ -84,6 +84,38 @@ export function mergeLetters(
   });
   const removed = existing.filter((l) => !fetchedIds.has(l.id));
   return { letters: letters.sort(bySentDesc), added, removed };
+}
+
+/** 원본에서 레터가 이보다 많이 줄었으면 스티비 쪽 문제일 수 있어 멈춘다 */
+const MIN_KEEP_RATIO = 0.9;
+
+function isRawEmail(v: unknown): v is RawEmail {
+  if (typeof v !== 'object' || v === null) return false;
+  const e = v as Record<string, unknown>;
+  return (
+    typeof e.id === 'number' &&
+    typeof e.pid === 'number' &&
+    typeof e.subject === 'string' &&
+    typeof e.previewText === 'string' &&
+    typeof e.permanentLink === 'string' &&
+    typeof e.sentTime === 'string'
+  );
+}
+
+/**
+ * 스티비에서 받은 목록을 저장하기 전에 확인한다. 응답 형식이 바뀌었거나 비어 있으면
+ * 그대로 합쳤을 때 기존 레터(분류·그림 포함)가 모두 지워지므로 거부한다.
+ */
+export function checkArchive(
+  data: unknown,
+  existingCount: number,
+): { ok: true; emails: RawEmail[] } | { ok: false; reason: string } {
+  if (!Array.isArray(data) || data.length === 0) return { ok: false, reason: '레터 목록이 비어 있거나 형식이 달라요.' };
+  if (!data.every(isRawEmail)) return { ok: false, reason: '레터 항목의 형식이 예전과 달라요.' };
+  if (data.length < existingCount * MIN_KEEP_RATIO) {
+    return { ok: false, reason: `레터가 ${existingCount}편에서 ${data.length}편으로 너무 많이 줄었어요.` };
+  }
+  return { ok: true, emails: data };
 }
 
 /** 'all'이면 전체, 아니면 그 카테고리만. 최신순 */

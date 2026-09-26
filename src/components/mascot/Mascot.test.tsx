@@ -19,6 +19,11 @@ describe('Mascot', () => {
     expect(container.querySelector('img')).toHaveAttribute('alt', '');
   });
 
+  it('누를 수 있으면 지은 이름으로 인사 버튼 이름을 붙인다', () => {
+    render(<Mascot stage={4} size="lg" interactive name="별" />);
+    expect(screen.getByRole('button', { name: '별과 인사하기' })).toBeInTheDocument();
+  });
+
   it('누르면 짧은 한마디를 한다', async () => {
     render(<Mascot stage={4} size="lg" interactive />);
     await userEvent.click(screen.getByRole('button', { name: '뱁새와 인사하기' }));

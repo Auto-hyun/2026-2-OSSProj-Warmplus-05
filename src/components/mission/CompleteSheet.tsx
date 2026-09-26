@@ -43,7 +43,7 @@ export function CompleteSheet({ open, mission, onClose, onSubmit }: Props) {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="한 줄로 남겨도 좋아요"
-          className="mt-2 h-12 w-full rounded-2xl border border-line bg-bg px-4 text-[15px] text-ink-900 outline-none placeholder:text-ink-400 focus:border-brown-600/40"
+          className="mt-2 h-12 w-full rounded-2xl border border-line bg-bg px-4 text-base text-ink-900 outline-none placeholder:text-ink-400 focus:border-brown-600/40"
         />
         <Button type="submit" size="lg" full className="mt-5">
           완료

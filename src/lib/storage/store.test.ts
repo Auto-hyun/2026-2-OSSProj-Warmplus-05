@@ -1,4 +1,4 @@
-import { BACKUP_KEY, STORAGE_KEY, createDefaultState, createLocalStorageAdapter, createMemoryAdapter } from './adapters';
+import { BACKUP_KEY, STORAGE_KEY, createDefaultState, createLocalStorageAdapter, createMemoryAdapter, parseState } from './adapters';
 import { createStore } from './store';
 import { completedCount } from './selectors';
 import { missionFor, swapCandidateFor } from '@/lib/progress';
@@ -38,6 +38,12 @@ describe('completeMission', () => {
     expect(record.missionId).toBe(missionFor('install-x', '2026-09-26').id);
     expect(record.completedAt).toBe(NOW.toISOString());
     expect(record.demo).toBeUndefined();
+  });
+
+  it('메모를 100자에서 자를 때 이모지가 반쪽으로 깨지지 않는다', () => {
+    const { store } = freshStore();
+    store.completeMission({ note: `${'a'.repeat(99)}😀😀` });
+    expect(store.getState().missions.records['2026-09-26'].note).toBe(`${'a'.repeat(99)}😀`);
   });
 
   it('메모는 앞뒤 공백을 지우고 100자까지만 저장한다', () => {
@@ -123,6 +129,35 @@ describe('renameBird', () => {
   });
 });
 
+describe('뱁새 이름 짓기 (처음 실행)', () => {
+  it('처음에는 아직 이름을 짓지 않은 상태다', () => {
+    const { store } = freshStore();
+    expect(store.getState().profile.named).toBe(false);
+  });
+
+  it('이름을 지으면 저장하고 지은 상태가 된다 (앞뒤 공백 제거, 1~10자)', () => {
+    const { store } = freshStore();
+    expect(store.completeNaming('   ').ok).toBe(false);
+    expect(store.completeNaming('가나다라마바사아자차카').ok).toBe(false);
+    expect(store.getState().profile.named).toBe(false);
+    expect(store.completeNaming(' 콩이 ').ok).toBe(true);
+    expect(store.getState().profile).toMatchObject({ birdName: '콩이', named: true });
+  });
+
+  it('나중에 하기를 고르면 뱁새라는 이름으로 지은 상태가 된다', () => {
+    const { store } = freshStore();
+    expect(store.completeNaming().ok).toBe(true);
+    expect(store.getState().profile).toMatchObject({ birdName: '뱁새', named: true });
+  });
+
+  it('기록을 모두 지우면 다시 이름을 지어야 한다', () => {
+    const { store } = freshStore();
+    store.completeNaming('콩이');
+    store.resetAll();
+    expect(store.getState().profile).toMatchObject({ birdName: '뱁새', named: false });
+  });
+});
+
 describe('설정·프로필', () => {
   it('마지막으로 본 단계와 대화 안내 확인 여부를 기록한다', () => {
     const { store } = freshStore();
@@ -198,5 +233,35 @@ describe('깨진 저장 데이터', () => {
     const store = createStore(createLocalStorageAdapter(storage)!, clock);
     expect(store.getState().profile.birdName).toBe('뱁새');
     expect(storage.getItem(BACKUP_KEY)).toBe('{"version":1,"profile":');
+  });
+});
+
+describe('여러 탭', () => {
+  it('다른 탭에서 바뀐 기록을 받아와서, 이 탭의 옛 상태로 덮어쓰지 않는다', () => {
+    const storage = new FakeStorage();
+    const tabA = createStore(createLocalStorageAdapter(storage)!, clock);
+    const tabB = createStore(createLocalStorageAdapter(storage)!, clock);
+    const changed = vi.fn();
+    tabB.subscribe(changed);
+
+    tabA.completeMission();
+    // 브라우저는 다른 탭에 storage 이벤트를 보낸다
+    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
+    expect(changed).toHaveBeenCalled();
+    expect(completedCount(tabB.getState())).toBe(1);
+
+    tabB.appendChatMessage('2026-09-26', 'Q', { role: 'user', content: '안녕' });
+    const saved = parseState(storage.getItem(STORAGE_KEY))!;
+    expect(completedCount(saved)).toBe(1);
+    expect(saved.chats['2026-09-26'].messages).toHaveLength(1);
+  });
+
+  it('다른 키의 storage 이벤트는 무시한다', () => {
+    const storage = new FakeStorage();
+    const store = createStore(createLocalStorageAdapter(storage)!, clock);
+    const changed = vi.fn();
+    store.subscribe(changed);
+    window.dispatchEvent(new StorageEvent('storage', { key: 'other-app' }));
+    expect(changed).not.toHaveBeenCalled();
   });
 });

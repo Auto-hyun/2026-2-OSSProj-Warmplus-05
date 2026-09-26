@@ -20,6 +20,8 @@ export type OngiStore = {
   appendChatMessage(key: DayKey, question: string, msg: { role: ChatRole; content: string; kind?: 'safety' }): void;
   markBridgeShown(key: DayKey): void;
   renameBird(name: string): { ok: boolean };
+  /** 처음 실행 때 이름 짓기. 이름 없이 부르면(나중에 하기) 기본 이름 그대로 */
+  completeNaming(name?: string): { ok: boolean };
   setLastSeenStage(stage: StageNo): void;
   markChatNoticeSeen(): void;
   resetAll(): void;
@@ -37,11 +39,24 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
   adapter.save(state);
   const listeners = new Set<() => void>();
 
+  function notify() {
+    listeners.forEach((listener) => listener());
+  }
+
   function set(next: OngiState) {
     state = next;
     adapter.save(state);
-    listeners.forEach((listener) => listener());
+    notify();
   }
+
+  // 다른 탭에서 바꾼 기록을 받아온다. 안 그러면 이 탭의 옛 상태로 저장하면서 그 기록을 덮어쓴다
+  adapter.subscribe?.(() => {
+    const next = adapter.load();
+    if (next) {
+      state = next;
+      notify();
+    }
+  });
 
   function today(): DayKey {
     return kstTodayKey(clock(), state.settings.dayOffset);
@@ -66,7 +81,8 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
       if (dayKey && dayKey !== key) return { ok: false, reason: 'day-changed' };
       if (state.missions.records[key]) return { ok: false, reason: 'already-done' };
       const mission = missionFor(state.profile.installId, key, state.missions.swaps[key]);
-      const trimmed = note?.trim().slice(0, NOTE_MAX);
+      // 글자(코드 포인트) 단위로 잘라 이모지가 반쪽으로 깨지지 않게 한다
+      const trimmed = note ? Array.from(note.trim()).slice(0, NOTE_MAX).join('') : undefined;
       set({
         ...state,
         missions: {
@@ -104,6 +120,17 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
       const trimmed = name.trim();
       if (trimmed.length < 1 || trimmed.length > BIRD_NAME_MAX) return { ok: false };
       set({ ...state, profile: { ...state.profile, birdName: trimmed } });
+      return { ok: true };
+    },
+
+    completeNaming(name) {
+      let birdName = state.profile.birdName;
+      if (name !== undefined) {
+        const trimmed = name.trim();
+        if (trimmed.length < 1 || trimmed.length > BIRD_NAME_MAX) return { ok: false };
+        birdName = trimmed;
+      }
+      set({ ...state, profile: { ...state.profile, birdName, named: true } });
       return { ok: true };
     },
 

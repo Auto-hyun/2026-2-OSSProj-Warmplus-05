@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { getStage, type StageNo } from '@/data/stages';
 import { cn } from '@/lib/cn';
+import { josa } from '@/lib/josa';
+import { DEFAULT_BIRD_NAME } from '@/lib/storage/adapters';
 
 const SIZE_PX = { sm: 40, md: 96, lg: 208 } as const;
 type Size = keyof typeof SIZE_PX;
@@ -29,10 +31,20 @@ type Props = {
   interactive?: boolean;
   /** 옆에 이름이 따로 있는 장식용이면 대체 텍스트를 비운다 */
   decorative?: boolean;
+  /** 지은 이름 (누를 수 있을 때 버튼 이름에 쓴다) */
+  name?: string;
   className?: string;
 };
 
-export function Mascot({ stage, size, animated = true, interactive = false, decorative = false, className }: Props) {
+export function Mascot({
+  stage,
+  size,
+  animated = true,
+  interactive = false,
+  decorative = false,
+  name = DEFAULT_BIRD_NAME,
+  className,
+}: Props) {
   const [hopKey, setHopKey] = useState(0);
   const [line, setLine] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -83,7 +95,7 @@ export function Mascot({ stage, size, animated = true, interactive = false, deco
         </p>
       )}
       {interactive ? (
-        <button type="button" onClick={greet} aria-label="뱁새와 인사하기" className="size-full rounded-full">
+        <button type="button" onClick={greet} aria-label={`${josa(name, '과/와')} 인사하기`} className="size-full rounded-full">
           {figure}
         </button>
       ) : (

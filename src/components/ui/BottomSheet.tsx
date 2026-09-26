@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { XIcon } from '@phosphor-icons/react';
+import { useModal } from './useModal';
 
 type Props = {
   open: boolean;
@@ -12,23 +13,7 @@ type Props = {
 
 /** 아래에서 올라오는 창. 배경을 누르거나 ESC로 닫힌다 */
 export function BottomSheet({ open, onClose, title, children }: Props) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  // 부모가 다시 그려질 때마다 onClose가 새 함수여도 아래 효과가 다시 돌지 않도록 ref로 최신 값만 참조
-  const onCloseRef = useRef(onClose);
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  });
-
-  // 열릴 때 한 번만 포커스를 옮긴다 (입력 중 포커스를 빼앗지 않게)
-  useEffect(() => {
-    if (!open) return;
-    panelRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCloseRef.current();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  const panelRef = useModal<HTMLDivElement>(open, onClose);
 
   if (!open) return null;
 

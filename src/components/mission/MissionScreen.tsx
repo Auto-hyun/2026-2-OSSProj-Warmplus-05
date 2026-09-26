@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { AppBar } from '@/components/layout/AppBar';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Toast, useToast } from '@/components/ui/Toast';
 import type { Mission } from '@/data/missions';
 import { getStage } from '@/data/stages';
 import type { DayKey } from '@/lib/date';
+import { josa } from '@/lib/josa';
 import { missionFor, nextStageInfo } from '@/lib/progress';
 import { completedCount, monthCompletedCount } from '@/lib/storage/selectors';
 import { useOngi, useStore, useToday } from '@/lib/storage/useOngi';
@@ -28,9 +30,7 @@ export function MissionScreen() {
   /** 완료 시트를 연 순간의 날짜·미션 (그사이 자정이 지나도 이 날짜로만 완료를 시도한다) */
   const [sheet, setSheet] = useState<{ dayKey: DayKey; mission: Mission } | null>(null);
   const [pickedDay, setPickedDay] = useState<DayKey | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(toastTimer.current), []);
+  const { toast, showToast } = useToast(2500);
 
   if (!state || !today) {
     return (
@@ -52,19 +52,18 @@ export function MissionScreen() {
   const canSwap = !record && !state.missions.swaps[today];
   const total = completedCount(state);
   const growth = nextStageInfo(total);
+  const birdName = state.profile.birdName;
 
   function complete(note: string) {
     const result = store.completeMission({ note, dayKey: sheet?.dayKey });
     setSheet(null);
-    setToast(
+    showToast(
       result.ok
-        ? '잘했어요! 뱁새가 기뻐해요'
+        ? `잘했어요! ${josa(birdName, '이/가')} 기뻐해요`
         : result.reason === 'day-changed'
           ? '자정이 지나 날짜가 바뀌었어요. 오늘의 미션을 확인해 주세요.'
           : '오늘 미션은 이미 완료했어요.',
     );
-    clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2500);
   }
 
   return (
@@ -76,6 +75,7 @@ export function MissionScreen() {
             mission={mission}
             done={Boolean(record)}
             note={record?.note}
+            name={birdName}
             canSwap={canSwap}
             onComplete={() => setSheet({ dayKey: today, mission })}
             onSwap={() => store.swapMission()}
@@ -115,14 +115,7 @@ export function MissionScreen() {
       <CompleteSheet open={sheet !== null} mission={sheet?.mission ?? mission} onClose={() => setSheet(null)} onSubmit={complete} />
       <DayDetailSheet dayKey={pickedDay} record={pickedDay ? state.missions.records[pickedDay] : undefined} onClose={() => setPickedDay(null)} />
 
-      {toast && (
-        <p
-          role="status"
-          className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+92px)] z-40 mx-auto w-fit animate-[ongi-pop_0.2s_ease-out] rounded-full bg-ink-900 px-4 py-2.5 text-sm font-medium text-white"
-        >
-          {toast}
-        </p>
-      )}
+      <Toast message={toast} />
     </>
   );
 }

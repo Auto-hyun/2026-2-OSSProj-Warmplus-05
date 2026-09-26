@@ -2,7 +2,7 @@ import type { ChatMessage } from './types';
 
 export const MAX_USER_CHARS = 1000;
 export const MAX_MESSAGES = 40;
-const MAX_ASSISTANT_CHARS = 2000;
+export const MAX_ASSISTANT_CHARS = 2000;
 
 type Result = { ok: true; messages: ChatMessage[] } | { ok: false; error: string };
 

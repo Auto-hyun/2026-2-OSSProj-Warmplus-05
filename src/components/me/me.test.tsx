@@ -75,6 +75,12 @@ describe('SettingsSection', () => {
 });
 
 describe('ProfileCard', () => {
+  it('이름 입력칸 글자는 16px 이상이라 iOS 사파리에서 확대되지 않는다', async () => {
+    render(<ProfileCard birdName="뱁새" stage={3} count={8} daysTogether={12} onRename={() => ({ ok: true })} />);
+    await userEvent.click(screen.getByRole('button', { name: '이름 바꾸기' }));
+    expect(screen.getByRole('textbox', { name: '새 이름' }).className).toContain('text-base');
+  });
+
   it('이름을 바꾸고, 규칙에 맞지 않으면 안내한다', async () => {
     const onRename = vi.fn((name: string) => ({ ok: name.trim().length > 0 }));
     render(<ProfileCard birdName="뱁새" stage={3} count={8} daysTogether={12} onRename={onRename} />);

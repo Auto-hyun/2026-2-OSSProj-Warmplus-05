@@ -1,10 +1,12 @@
 import { Mascot } from '@/components/mascot/Mascot';
 import type { StageNo } from '@/data/stages';
+import { josa } from '@/lib/josa';
+import { DEFAULT_BIRD_NAME } from '@/lib/storage/adapters';
 import type { ChatRole } from '@/lib/storage/types';
 
-function TypingDots() {
+function TypingDots({ name }: { name: string }) {
   return (
-    <span role="status" aria-label="뱁새가 답장을 쓰는 중" className="inline-flex h-5 items-center gap-1">
+    <span role="status" aria-label={`${josa(name, '이/가')} 답장을 쓰는 중`} className="inline-flex h-5 items-center gap-1">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
@@ -36,9 +38,11 @@ type Props = {
   /** 답장을 받는 중 (내용이 비어 있으면 점 세 개) */
   pending?: boolean;
   avatarStage?: StageNo;
+  /** 지은 이름 (답장을 쓰는 중이라고 알릴 때) */
+  name?: string;
 };
 
-export function MessageBubble({ role, content, pending = false, avatarStage = 1 }: Props) {
+export function MessageBubble({ role, content, pending = false, avatarStage = 1, name = DEFAULT_BIRD_NAME }: Props) {
   if (role === 'user') {
     return (
       <div className="flex justify-end">
@@ -52,7 +56,7 @@ export function MessageBubble({ role, content, pending = false, avatarStage = 1 
     <div className="flex items-end gap-2">
       <Avatar stage={avatarStage} />
       <p className="max-w-[78%] rounded-2xl rounded-bl-md border border-line bg-surface px-4 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap text-ink-900">
-        {pending && !content ? <TypingDots /> : content}
+        {pending && !content ? <TypingDots name={name} /> : content}
       </p>
     </div>
   );

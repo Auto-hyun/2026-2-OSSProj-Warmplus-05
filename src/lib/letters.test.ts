@@ -1,4 +1,4 @@
-import { cleanText, extractEmoji, filterLetters, mergeLetters, toLetter, type Letter, type RawEmail } from './letters';
+import { checkArchive, cleanText, extractEmoji, filterLetters, mergeLetters, toLetter, type Letter, type RawEmail } from './letters';
 
 function raw(id: number, subject: string, sentTime: string, previewText = ''): RawEmail {
   return { id, pid: id % 1000, subject, previewText, permanentLink: `https://stib.ee/${id}`, sentTime };
@@ -99,5 +99,26 @@ describe('src/data/letters.json (실제 데이터 점검)', async () => {
       expect(l.title).not.toContain('$%name%$');
       expect(l.title).not.toMatch(/온기\s+온기님/);
     }
+  });
+});
+
+describe('checkArchive (동기화 전에 받은 목록 검사)', () => {
+  const emails = [raw(1, '첫 편지', '2026-01-01T20:00:00+09:00'), raw(2, '둘째 편지', '2026-01-08T20:00:00+09:00')];
+
+  it('레터 목록이면 통과시킨다', () => {
+    expect(checkArchive(emails, 2)).toEqual({ ok: true, emails });
+  });
+
+  it('배열이 아니거나 비어 있으면 거부한다 (기존 목록을 지우지 않게)', () => {
+    expect(checkArchive({ data: emails }, 0).ok).toBe(false);
+    expect(checkArchive([], 0).ok).toBe(false);
+  });
+
+  it('필요한 값이 빠진 항목이 있으면 거부한다', () => {
+    expect(checkArchive([...emails, { id: 3, subject: '제목만' }], 0).ok).toBe(false);
+  });
+
+  it('기존보다 10% 넘게 줄었으면 거부한다', () => {
+    expect(checkArchive(emails, 3).ok).toBe(false);
   });
 });

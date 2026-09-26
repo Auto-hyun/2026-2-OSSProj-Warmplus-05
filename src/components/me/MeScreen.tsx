@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppBar } from '@/components/layout/AppBar';
 import { HelplineCard } from '@/components/ui/HelplineCard';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Toast, useToast } from '@/components/ui/Toast';
 import { completedCount, daysTogether, displayStage, monthCompletedCount, realStage, talkedDaysCount } from '@/lib/storage/selectors';
 import { useOngi, useStore, useToday } from '@/lib/storage/useOngi';
 import { ChatRecordList } from './ChatRecordList';
@@ -28,9 +29,7 @@ export function MeScreen() {
   const state = useOngi((s) => s);
   const today = useToday();
   const taps = useRef<number[]>([]);
-  const [toast, setToast] = useState<string | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(toastTimer.current), []);
+  const { toast, showToast } = useToast(2000);
 
   if (!state || !today) {
     return (
@@ -42,12 +41,6 @@ export function MeScreen() {
         </div>
       </>
     );
-  }
-
-  function showToast(message: string) {
-    setToast(message);
-    clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2000);
   }
 
   // 버전 정보를 2초 안에 5번 누르면 시연 모드를 켜고 끈다
@@ -103,14 +96,7 @@ export function MeScreen() {
         />
       </div>
 
-      {toast && (
-        <p
-          role="status"
-          className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+92px)] z-40 mx-auto w-fit animate-[ongi-pop_0.2s_ease-out] rounded-full bg-ink-900 px-4 py-2.5 text-sm font-medium text-white"
-        >
-          {toast}
-        </p>
-      )}
+      <Toast message={toast} />
     </>
   );
 }

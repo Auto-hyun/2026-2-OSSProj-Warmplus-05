@@ -1,17 +1,18 @@
 'use client';
 
 import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { ArrowClockwiseIcon, PaperPlaneRightIcon, WifiSlashIcon } from '@phosphor-icons/react';
+import { ArrowClockwiseIcon, WifiSlashIcon } from '@phosphor-icons/react';
 import { AppBar } from '@/components/layout/AppBar';
 import { HelplineCard } from '@/components/ui/HelplineCard';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { BRIDGE_AFTER_USER_MESSAGES, buildRequestMessages, requestReply } from '@/lib/chat-client';
-import { cn } from '@/lib/cn';
+import { BRIDGE_AFTER_USER_MESSAGES, ReplyError, buildRequestMessages, requestReply } from '@/lib/chat-client';
 import { formatKoreanDate, type DayKey } from '@/lib/date';
 import { MAX_USER_CHARS } from '@/lib/llm/validate';
+import { DEFAULT_BIRD_NAME } from '@/lib/storage/adapters';
 import { displayStage } from '@/lib/storage/selectors';
 import { useOngi, useStore } from '@/lib/storage/useOngi';
 import { BridgeCard } from './BridgeCard';
+import { ChatInput } from './ChatInput';
 import { ChatNotice } from './ChatNotice';
 import { MessageBubble } from './MessageBubble';
 import { QuickReplies } from './QuickReplies';
@@ -41,17 +42,17 @@ export function ChatRoom({ date, question, readOnly }: Props) {
   const hydrated = useOngi(() => true);
   const day = useOngi((s) => s.chats[date]);
   const stage = useOngi(displayStage) ?? 1;
-  const birdName = useOngi((s) => s.profile.birdName) ?? '뱁새';
+  const birdName = useOngi((s) => s.profile.birdName) ?? DEFAULT_BIRD_NAME;
   const seenNotice = useOngi((s) => s.settings.seenChatNotice);
   const online = useOnline();
 
-  const [input, setInput] = useState('');
   /** 스트리밍 중인 답장. null이면 기다리는 답장 없음 */
   const [pending, setPending] = useState<string | null>(null);
   /** 온기우편함 카드를 붙일 위치(이 개수만큼의 메시지 뒤) */
   const [bridgeAt, setBridgeAt] = useState<number | null>(null);
+  /** 마지막 답장을 받지 못한 이유 */
+  const [error, setError] = useState<ReplyError | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const messages = day?.messages ?? [];
   const userCount = messages.filter((m) => m.role === 'user').length;
@@ -75,19 +76,24 @@ export function ChatRoom({ date, question, readOnly }: Props) {
   async function fetchReply() {
     const current = store.getState().chats[date];
     if (!current) return;
+    const replyingTo = current.messages.at(-1)?.at;
+    setError(null);
     setPending('');
     try {
       const result = await requestReply(buildRequestMessages(current.question, current.messages), (chunk) =>
         setPending((prev) => (prev ?? '') + chunk),
       );
+      // 기다리는 사이 기록을 지웠거나(초기화) 다른 탭에서 대화가 이어졌으면 이 답장은 버린다
+      if (store.getState().chats[date]?.messages.at(-1)?.at !== replyingTo) return;
       if (result.type === 'safety') {
         store.appendChatMessage(date, question, { role: 'assistant', content: result.message, kind: 'safety' });
       } else {
         store.appendChatMessage(date, question, { role: 'assistant', content: result.text });
         maybeShowBridge();
       }
-    } catch {
-      // 마지막 메시지가 사용자 메시지로 남아 '다시 보내기'가 나타난다
+    } catch (e) {
+      // 마지막 메시지가 사용자 메시지로 남아 이유와 (다시 보낼 만하면) '다시 보내기'가 나타난다
+      setError(e instanceof ReplyError ? e : new ReplyError('답장을 받지 못했어요. 다시 보내 주세요.', true));
     } finally {
       setPending(null);
     }
@@ -95,20 +101,9 @@ export function ChatRoom({ date, question, readOnly }: Props) {
 
   function send(text: string) {
     const content = text.trim();
-    if (!content || busy || readOnly) return;
+    if (!content || content.length > MAX_USER_CHARS || busy || readOnly) return;
     store.appendChatMessage(date, question, { role: 'user', content });
-    setInput('');
-    if (inputRef.current) inputRef.current.style.height = '';
     void fetchReply();
-  }
-
-  function onInput(value: string) {
-    setInput(value);
-    const el = inputRef.current;
-    if (el) {
-      el.style.height = 'auto';
-      el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
-    }
   }
 
   const title = (
@@ -152,18 +147,25 @@ export function ChatRoom({ date, question, readOnly }: Props) {
               </Fragment>
             ))}
 
-            {busy && <MessageBubble role="assistant" content={pending ?? ''} pending avatarStage={stage} />}
+            {busy && <MessageBubble role="assistant" content={pending ?? ''} pending avatarStage={stage} name={birdName} />}
 
             {!readOnly && lastIsUser && !busy && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => void fetchReply()}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-brown-600 active:bg-black/5"
-                >
-                  <ArrowClockwiseIcon size={15} aria-hidden />
-                  다시 보내기
-                </button>
+              <div className="flex flex-col items-end">
+                {error && (
+                  <p role="alert" className="px-3 text-right text-[13px] text-ink-600">
+                    {error.message}
+                  </p>
+                )}
+                {error?.retryable !== false && (
+                  <button
+                    type="button"
+                    onClick={() => void fetchReply()}
+                    className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-brown-600 active:bg-black/5"
+                  >
+                    <ArrowClockwiseIcon size={15} aria-hidden />
+                    다시 보내기
+                  </button>
+                )}
               </div>
             )}
           </>
@@ -171,43 +173,7 @@ export function ChatRoom({ date, question, readOnly }: Props) {
         <div ref={endRef} />
       </div>
 
-      {!readOnly && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(input);
-          }}
-          className="sticky bottom-0 border-t border-line bg-bg/95 px-4 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+10px)] backdrop-blur"
-        >
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={inputRef}
-              aria-label="메시지 입력"
-              rows={1}
-              maxLength={MAX_USER_CHARS}
-              value={input}
-              onChange={(e) => onInput(e.target.value)}
-              placeholder="편하게 털어놓아 보세요"
-              className="max-h-[120px] min-h-11 flex-1 resize-none rounded-2xl border border-line bg-surface px-4 py-2.5 text-[15px] leading-relaxed text-ink-900 outline-none placeholder:text-ink-400 focus:border-brown-600/40"
-            />
-            <button
-              type="submit"
-              aria-label="보내기"
-              disabled={!input.trim() || busy}
-              className={cn(
-                'grid size-11 shrink-0 place-items-center rounded-full bg-yellow-500 text-ink-900 transition disabled:opacity-40',
-              )}
-            >
-              <PaperPlaneRightIcon size={20} weight="fill" aria-hidden />
-            </button>
-          </div>
-          {input.length > MAX_USER_CHARS - 100 && (
-            <p className="mt-1 text-right text-xs text-ink-400">
-              {input.length.toLocaleString()}/{MAX_USER_CHARS.toLocaleString()}
-            </p>
-          )}
-        </form>
-      )}
+      {!readOnly && <ChatInput busy={busy} onSend={send} />}
     </div>
   );
 }

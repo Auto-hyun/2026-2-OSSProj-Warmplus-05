@@ -6,6 +6,7 @@ import {
   formatDotDate,
   formatKoreanDate,
   isSameMonth,
+  isValidDayKey,
   monthGrid,
   msUntilNextKstMidnight,
   todayKey,
@@ -91,5 +92,18 @@ describe('msUntilNextKstMidnight (다음 한국 자정까지 남은 시간)', ()
 
   it('한국 정오면 12시간 남았다', () => {
     expect(msUntilNextKstMidnight(new Date('2026-09-26T03:00:00Z'))).toBe(43_200_000);
+  });
+});
+
+describe('isValidDayKey', () => {
+  it.each([
+    ['2026-09-26', true],
+    ['2024-02-29', true],
+    ['2026-02-29', false],
+    ['2026-13-45', false],
+    ['2026-9-26', false],
+    ['abc', false],
+  ])('%s → %s', (key, expected) => {
+    expect(isValidDayKey(key)).toBe(expected);
   });
 });

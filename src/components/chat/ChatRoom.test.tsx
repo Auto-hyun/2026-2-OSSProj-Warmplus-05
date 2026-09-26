@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn(), push: vi.fn() }) }));
@@ -94,6 +94,55 @@ describe('ChatRoom', () => {
     expect(screen.getByRole('region', { name: '도움받을 수 있는 곳' })).toBeInTheDocument();
     expect(screen.queryByText('이 이야기, 손편지로 답장받고 싶다면?')).not.toBeInTheDocument();
     expect(store.getState().chats[TODAY].bridgeShown).toBe(false);
+  });
+
+  it('다시 보내도 안 되는 오류(4xx)면 이유를 보여주고 다시 보내기는 없다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ error: '요청 형식이 올바르지 않아요.' }, { status: 400 })));
+    await renderRoom();
+    await userEvent.click(screen.getByRole('button', { name: '잘 모르겠어요' }));
+    expect(await screen.findByText('요청 형식이 올바르지 않아요.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 보내기' })).not.toBeInTheDocument();
+  });
+
+  it('다시 보낼 수 있는 오류면 이유와 다시 보내기를 함께 보여준다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ error: '답장을 만들지 못했어요. 다시 보내 주세요.' }, { status: 502 })));
+    await renderRoom();
+    await userEvent.click(screen.getByRole('button', { name: '잘 모르겠어요' }));
+    expect(await screen.findByText('답장을 만들지 못했어요. 다시 보내 주세요.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '다시 보내기' })).toBeInTheDocument();
+  });
+
+  it('1,000자가 넘는 입력은 저장하지 않고 알려준다', async () => {
+    const fetchSpy = vi.fn(async () => streamResponse('x'));
+    vi.stubGlobal('fetch', fetchSpy);
+    const store = await renderRoom();
+    fireEvent.change(screen.getByRole('textbox', { name: '메시지 입력' }), { target: { value: '가'.repeat(1001) } });
+    fireEvent.submit(screen.getByRole('textbox', { name: '메시지 입력' }).closest('form')!);
+    expect(store.getState().chats[TODAY]).toBeUndefined();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent('1,000자');
+  });
+
+  it('입력창 글자는 16px 이상이라 iOS 사파리에서 확대되지 않는다', async () => {
+    await renderRoom();
+    expect(screen.getByRole('textbox', { name: '메시지 입력' }).className).toContain('text-base');
+  });
+
+  it('답장을 기다리는 사이 기록을 모두 지우면, 늦게 온 답장을 새 기록에 남기지 않는다', async () => {
+    let release!: () => void;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>((resolve) => (release = () => resolve(streamResponse('늦게 온 답장이에요?'))))),
+    );
+    const store = await renderRoom();
+    await userEvent.click(screen.getByRole('button', { name: '잘 모르겠어요' }));
+
+    act(() => store.resetAll());
+    await act(async () => release());
+
+    // 답장 기다리기가 끝나면 (기록이 비었으니) 빠른 답이 다시 보인다
+    expect(await screen.findByRole('button', { name: '잘 모르겠어요' })).toBeInTheDocument();
+    expect(store.getState().chats[TODAY]).toBeUndefined();
   });
 
   it('지난 대화는 읽기만 한다', async () => {

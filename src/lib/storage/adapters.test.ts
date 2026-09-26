@@ -6,6 +6,7 @@ import {
   createMemoryAdapter,
   parseState,
 } from './adapters';
+import type { OngiState } from './types';
 import { FakeStorage } from '@/test/fake-storage';
 
 const NOW = new Date('2026-09-26T01:00:00Z'); // 한국 2026-09-26 10:00
@@ -50,6 +51,81 @@ describe('parseState', () => {
       stageOverride: null,
       seenChatNotice: false,
     });
+  });
+});
+
+describe('parseState — 이름 짓기 도입 전 데이터', () => {
+  // named 값이 없던 예전 데이터를 만든다
+  function withoutNamed(birdName: string, edit?: (state: OngiState) => void) {
+    const state = createDefaultState(NOW, 'id-1');
+    edit?.(state);
+    const profile: Partial<OngiState['profile']> = { ...state.profile, birdName };
+    delete profile.named;
+    return JSON.stringify({ ...state, profile });
+  }
+
+  it('이름을 바꾼 적 있으면 지은 것으로, 아직 뱁새면 짓지 않은 것으로 본다', () => {
+    expect(parseState(withoutNamed('콩이'))?.profile.named).toBe(true);
+    expect(parseState(withoutNamed('뱁새'))?.profile.named).toBe(false);
+  });
+
+  it('이미 미션이나 대화 기록이 있으면 이름이 뱁새 그대로여도 지은 것으로 본다 (처음 화면을 다시 띄우지 않게)', () => {
+    const withMission = withoutNamed('뱁새', (s) => {
+      s.missions.records['2026-09-20'] = { missionId: 'walk-10', completedAt: '2026-09-20T01:00:00.000Z' };
+    });
+    const withChat = withoutNamed('뱁새', (s) => {
+      s.chats['2026-09-20'] = { question: 'Q', messages: [{ role: 'user', content: '안녕', at: '2026-09-20T01:00:00.000Z' }], bridgeShown: false };
+    });
+    expect(parseState(withMission)?.profile.named).toBe(true);
+    expect(parseState(withChat)?.profile.named).toBe(true);
+  });
+});
+
+describe('parseState — 값까지 검사', () => {
+  // 저장된 JSON을 고쳐서 다시 읽는다 (개발자 도구로 고쳤거나 예전 버전이 남긴 데이터)
+  type EditableState = { profile: Record<string, unknown>; missions: Record<string, unknown>; chats: unknown; settings: unknown };
+  function parseEdited(edit: (data: EditableState) => void) {
+    const data = JSON.parse(JSON.stringify(createDefaultState(NOW, 'id-1')));
+    edit(data);
+    return parseState(JSON.stringify(data));
+  }
+
+  it('프로필 값이 망가졌으면 통째로 버린다 (백업 후 새로 시작)', () => {
+    expect(parseEdited((d) => (d.profile.birdName = { name: '콩이' }))).toBeNull();
+    expect(parseEdited((d) => (d.profile.startedOn = 'yesterday'))).toBeNull();
+    expect(parseEdited((d) => (d.profile.lastSeenStage = 9))).toBeNull();
+  });
+
+  it('잘못된 미션 기록·교체만 빼고 나머지는 살린다', () => {
+    const s = parseEdited((d) => {
+      d.missions.records = {
+        '2026-09-25': { missionId: 'walk-10', completedAt: '2026-09-25T01:00:00.000Z', note: '좋았다' },
+        '2026-09-24': 'oops',
+        '2026-13-45': { missionId: 'walk-10', completedAt: '2026-09-25T01:00:00.000Z' },
+      };
+      d.missions.swaps = { '2026-09-25': 'cafe', '2026-09-24': 3 };
+    });
+    expect(s?.missions.records).toEqual({
+      '2026-09-25': { missionId: 'walk-10', completedAt: '2026-09-25T01:00:00.000Z', note: '좋았다' },
+    });
+    expect(s?.missions.swaps).toEqual({ '2026-09-25': 'cafe' });
+  });
+
+  it('형식이 잘못된 날의 대화만 빼고 나머지는 살린다', () => {
+    const good = { question: 'Q', messages: [{ role: 'user', content: '안녕', at: '2026-09-25T01:00:00.000Z' }], bridgeShown: false };
+    const s = parseEdited((d) => {
+      d.chats = {
+        '2026-09-25': good,
+        '2026-09-24': { question: 'Q', messages: 'x', bridgeShown: false },
+        '2026-09-23': { question: 'Q', messages: [{ role: 'user', content: { text: '안녕' }, at: '' }], bridgeShown: false },
+      };
+    });
+    expect(s?.chats).toEqual({ '2026-09-25': good });
+  });
+
+  it('설정 값이 잘못됐으면 그 값만 기본값으로 되돌린다', () => {
+    const s = parseEdited((d) => (d.settings = { demoMode: 'yes', dayOffset: '3', stageOverride: 9, seenChatNotice: true }));
+    expect(s?.settings).toEqual({ demoMode: false, dayOffset: 0, stageOverride: null, seenChatNotice: true });
   });
 });
 

@@ -18,6 +18,11 @@ describe('GrowthLine', () => {
     render(<GrowthLine count={30} />);
     expect(screen.getByText('뱁새가 다 자랐어요!')).toBeInTheDocument();
   });
+
+  it('완성 문구에 지은 이름을 쓴다', () => {
+    render(<GrowthLine count={30} name="별" />);
+    expect(screen.getByText('별이 다 자랐어요!')).toBeInTheDocument();
+  });
 });
 
 describe('TodayMissionShortcut', () => {
@@ -39,5 +44,35 @@ describe('QuestionBubble', () => {
     render(<QuestionBubble question="오늘 마음 날씨는 어떤가요?" />);
     expect(screen.getByText('오늘의 질문')).toBeInTheDocument();
     expect(screen.getByText('오늘 마음 날씨는 어떤가요?')).toBeInTheDocument();
+  });
+});
+
+describe('HomeScreen 대화 버튼', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-26T01:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  async function renderHome() {
+    vi.resetModules();
+    vi.doMock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn(), push: vi.fn() }) }));
+    const { HomeScreen } = await import('./HomeScreen');
+    const { getBrowserStore } = await import('@/lib/storage/useOngi');
+    return { HomeScreen, store: getBrowserStore() };
+  }
+
+  it('오늘 아직 이야기하지 않았으면 "내 생각 얘기하기"로 대화방에 간다', async () => {
+    const { HomeScreen } = await renderHome();
+    render(<HomeScreen />);
+    expect(screen.getByRole('link', { name: '내 생각 얘기하기' })).toHaveAttribute('href', '/chat');
+  });
+
+  it('오늘 이미 이야기했으면 "이어서 이야기하기"', async () => {
+    const { HomeScreen, store } = await renderHome();
+    store.appendChatMessage('2026-09-26', '질문', { role: 'user', content: '안녕' });
+    render(<HomeScreen />);
+    expect(screen.getByRole('link', { name: '이어서 이야기하기' })).toBeInTheDocument();
   });
 });

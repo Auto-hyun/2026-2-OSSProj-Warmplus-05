@@ -82,7 +82,7 @@ export function ProfileCard({ birdName, stage, count, daysTogether, onRename }: 
               setDraft(e.target.value);
               setError(false);
             }}
-            className="mt-2 h-12 w-full rounded-2xl border border-line bg-bg px-4 text-[15px] text-ink-900 outline-none focus:border-brown-600/40"
+            className="mt-2 h-12 w-full rounded-2xl border border-line bg-bg px-4 text-base text-ink-900 outline-none focus:border-brown-600/40"
           />
           {error && (
             <p role="alert" className="mt-2 text-[13px] text-brown-600">

@@ -3,17 +3,21 @@
 import { ArrowsClockwiseIcon, CheckCircleIcon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
 import { MISSION_THEME_LABEL, type Mission } from '@/data/missions';
+import { josa } from '@/lib/josa';
+import { DEFAULT_BIRD_NAME } from '@/lib/storage/adapters';
 
 type Props = {
   mission: Mission;
   done: boolean;
   note?: string;
+  /** 지은 이름 */
+  name?: string;
   canSwap: boolean;
   onComplete: () => void;
   onSwap: () => void;
 };
 
-export function TodayMissionCard({ mission, done, note, canSwap, onComplete, onSwap }: Props) {
+export function TodayMissionCard({ mission, done, note, name = DEFAULT_BIRD_NAME, canSwap, onComplete, onSwap }: Props) {
   return (
     <section aria-label="오늘의 미션" className="rounded-3xl border border-line bg-surface p-5">
       <p className="text-xs font-semibold text-brown-600">
@@ -35,7 +39,7 @@ export function TodayMissionCard({ mission, done, note, canSwap, onComplete, onS
             <CheckCircleIcon size={20} weight="fill" className="text-brown-600" aria-hidden />
             오늘 미션 완료!
           </p>
-          <p className="mt-1 text-[13px] text-ink-600">{note ? `“${note}”` : '뱁새가 기뻐하고 있어요.'}</p>
+          <p className="mt-1 text-[13px] text-ink-600">{note ? `“${note}”` : `${josa(name, '이/가')} 기뻐하고 있어요.`}</p>
         </div>
       ) : (
         <>

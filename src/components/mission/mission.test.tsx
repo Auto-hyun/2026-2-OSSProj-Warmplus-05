@@ -28,6 +28,11 @@ describe('TodayMissionCard', () => {
     expect(screen.queryByRole('button', { name: /다른 미션/ })).not.toBeInTheDocument();
   });
 
+  it('메모 없이 완료했으면 지은 이름으로 기뻐한다고 알려준다', () => {
+    render(<TodayMissionCard mission={walk} done name="콩이" canSwap={false} onComplete={() => {}} onSwap={() => {}} />);
+    expect(screen.getByText('콩이가 기뻐하고 있어요.')).toBeInTheDocument();
+  });
+
   it('완료했으면 완료 문구와 메모를 보여주고 버튼은 없다', () => {
     render(<TodayMissionCard mission={walk} done note="개운했어" canSwap={false} onComplete={() => {}} onSwap={() => {}} />);
     expect(screen.getByText('오늘 미션 완료!')).toBeInTheDocument();
@@ -37,6 +42,11 @@ describe('TodayMissionCard', () => {
 });
 
 describe('CompleteSheet', () => {
+  it('메모 입력칸 글자는 16px 이상이라 iOS 사파리에서 확대되지 않는다', () => {
+    render(<CompleteSheet open mission={walk} onClose={() => {}} onSubmit={() => {}} />);
+    expect(screen.getByRole('textbox', { name: '어땠나요? (선택)' }).className).toContain('text-base');
+  });
+
   it('메모를 적고 완료하면 메모를 넘긴다 (100자 제한)', async () => {
     const onSubmit = vi.fn();
     render(<CompleteSheet open mission={walk} onClose={() => {}} onSubmit={onSubmit} />);
@@ -110,6 +120,18 @@ describe('MissionScreen (완료 흐름)', () => {
     expect(screen.getByText('오늘 미션 완료!')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '9월 26일, 미션 완료, 오늘' })).toBeInTheDocument();
     expect(screen.getByText('이번 달 1일 · 누적 1개')).toBeInTheDocument();
+  });
+
+  it('완료하면 지은 이름으로 칭찬한다', async () => {
+    vi.resetModules();
+    const { MissionScreen } = await import('./MissionScreen');
+    const { getBrowserStore } = await import('@/lib/storage/useOngi');
+    getBrowserStore().completeNaming('콩이');
+    render(<MissionScreen />);
+
+    await userEvent.click(screen.getByRole('button', { name: '완료했어요' }));
+    await userEvent.click(screen.getByRole('button', { name: '완료' }));
+    expect(screen.getByRole('status')).toHaveTextContent('잘했어요! 콩이가 기뻐해요');
   });
 });
 

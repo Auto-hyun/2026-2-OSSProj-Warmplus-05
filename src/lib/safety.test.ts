@@ -44,3 +44,9 @@ describe('detectCrisis (위기 표현 감지)', () => {
     expect(SAFETY_MESSAGE).toContain('전문가');
   });
 });
+
+describe('SAFETY_MESSAGE', () => {
+  it('사용자가 이름을 바꿀 수 있으므로 스스로를 "뱁새"라고 부르지 않는다', () => {
+    expect(SAFETY_MESSAGE).not.toContain('뱁새');
+  });
+});

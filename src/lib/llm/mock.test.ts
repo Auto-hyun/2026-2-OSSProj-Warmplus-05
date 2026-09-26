@@ -66,3 +66,15 @@ describe('PERSONA_PROMPT', () => {
     expect(PERSONA_PROMPT).toContain('109');
   });
 });
+
+describe('목업 답장과 이름', () => {
+  it('사용자가 이름을 바꿀 수 있으므로 답장에서 스스로를 "뱁새"라고 부르지 않는다', async () => {
+    const samples = ['외로워', '슬퍼', '불안해', '화나', '피곤해', '행복해', '그냥 그래'];
+    for (const text of samples) {
+      for (const r of [0, 0.4, 0.8]) {
+        const { full } = await collect(createMockProvider({ delayMs: 0, random: () => r }), text);
+        expect(full).not.toContain('뱁새');
+      }
+    }
+  });
+});

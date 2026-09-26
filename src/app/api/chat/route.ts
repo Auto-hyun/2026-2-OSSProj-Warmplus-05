@@ -4,6 +4,30 @@ import { validateChatRequest } from '@/lib/llm/validate';
 import type { LLMProvider } from '@/lib/llm/types';
 import { SAFETY_MESSAGE, detectCrisis } from '@/lib/safety';
 
+/** 정상 요청(질문 + 최근 대화 20개)은 커도 100KB 안팎이라 넉넉히 잡은 상한(바이트) */
+const MAX_BODY_SIZE = 256 * 1024;
+const TOO_LARGE = '요청이 너무 커요.';
+
+/** 본문을 조금씩 읽으며 크기를 센다. 상한을 넘으면 그만 읽고 null */
+async function readBody(req: Request): Promise<string | null> {
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const decoder = new TextDecoder();
+  let size = 0;
+  let text = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY_SIZE) {
+      await reader.cancel();
+      return null;
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+  return text + decoder.decode();
+}
+
 function errorResponse(error: string, status: number): Response {
   return Response.json({ error }, { status });
 }
@@ -12,12 +36,17 @@ function errorResponse(error: string, status: number): Response {
  * 뱁새 답장 API.
  * - 정상: text/plain 스트림
  * - 위기 표현: 모델을 부르지 않고 { type: 'safety', message } JSON
- * - 요청 오류 400, 모델 오류 502
+ * - 요청 오류 400, 너무 큰 요청 413, 모델 오류 502
  */
 export async function POST(req: Request): Promise<Response> {
+  if (Number(req.headers.get('content-length')) > MAX_BODY_SIZE) return errorResponse(TOO_LARGE, 413);
+
   let body: unknown;
   try {
-    body = await req.json();
+    // Content-Length 없이 흘려보내는 요청도 상한까지만 읽는다
+    const raw = await readBody(req);
+    if (raw === null) return errorResponse(TOO_LARGE, 413);
+    body = JSON.parse(raw);
   } catch {
     return errorResponse('요청 형식이 올바르지 않아요.', 400);
   }

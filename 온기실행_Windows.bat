@@ -22,10 +22,16 @@ if not exist node_modules (
   )
 )
 
-rem 서버가 응답하면 브라우저를 연다 (최대 90초 기다림)
-start "" /min powershell -NoProfile -Command "for($i=0;$i -lt 90;$i++){try{Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:3000' -TimeoutSec 2 | Out-Null; Start-Process 'http://localhost:3000'; break}catch{Start-Sleep 1}}"
+rem 3000번부터 비어 있는 포트를 찾는다 (다른 프로그램이 3000번을 쓰고 있어도 엉뚱한 페이지가 열리지 않게)
+set PORT=
+for /f %%p in ('powershell -NoProfile -Command "$used = [System.Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners().Port; $p = 3000; while ($used -contains $p) { $p++ }; $p"') do set PORT=%%p
+if not defined PORT set PORT=3000
+set URL=http://localhost:%PORT%
 
-echo 온기를 실행합니다 -^> http://localhost:3000
+rem 서버가 응답하면 브라우저를 연다 (최대 90초 기다림)
+start "" /min powershell -NoProfile -Command "for($i=0;$i -lt 90;$i++){try{Invoke-WebRequest -UseBasicParsing -Uri '%URL%' -TimeoutSec 2 | Out-Null; Start-Process '%URL%'; break}catch{Start-Sleep 1}}"
+
+echo 온기를 실행합니다 -^> %URL%
 echo 끄려면 이 창에서 Ctrl+C 를 누르세요.
-call npm run dev -- --port 3000
+call npm run dev -- --port %PORT%
 pause

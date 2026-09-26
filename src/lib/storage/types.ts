@@ -39,6 +39,8 @@ export type OngiState = {
     installId: string;
     startedOn: DayKey;
     birdName: string;
+    /** 처음 실행 때 이름 짓기를 마쳤는지 (건너뛰어도 true) */
+    named: boolean;
     lastSeenStage: StageNo;
   };
   missions: {
@@ -55,4 +57,6 @@ export interface StorageAdapter {
   readonly persistent: boolean;
   load(): OngiState | null;
   save(state: OngiState): void;
+  /** 다른 곳(다른 탭)에서 저장된 값이 바뀌면 알려준다 */
+  subscribe?(onChange: () => void): () => void;
 }

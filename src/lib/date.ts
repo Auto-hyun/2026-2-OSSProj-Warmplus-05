@@ -29,6 +29,13 @@ function fromDayNumber(n: number): DayKey {
   return new Date(n * MS_PER_DAY).toISOString().slice(0, 10);
 }
 
+const DAY_KEY_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
+
+/** 'YYYY-MM-DD' 형식이면서 달력에 실제로 있는 날짜인지 (2026-02-29, 2026-13-45는 아님) */
+export function isValidDayKey(key: string): boolean {
+  return DAY_KEY_FORMAT.test(key) && addDays(key, 0) === key;
+}
+
 /** 한국 시간 기준 오늘. dayOffset은 시연 모드의 날짜 이동 */
 export function todayKey(now: Date = new Date(), dayOffset = 0): DayKey {
   const key = kstFormatter.format(now);
