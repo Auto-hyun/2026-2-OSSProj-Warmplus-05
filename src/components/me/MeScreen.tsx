@@ -12,6 +12,7 @@ import { ChatRecordList } from './ChatRecordList';
 import { GrowthAlbum } from './GrowthAlbum';
 import { OngiLinks } from './OngiLinks';
 import { ProfileCard } from './ProfileCard';
+import { SavedLetterList } from './SavedLetterList';
 import { SettingsSection } from './SettingsSection';
 import { StatsTiles } from './StatsTiles';
 import { TestRecordList } from './TestRecordList';
@@ -84,6 +85,13 @@ export function MeScreen() {
           <SectionTitle>나의 테스트 결과</SectionTitle>
           <TestRecordList records={state.tests} />
         </section>
+
+        {state.savedLetters.length > 0 && (
+          <section>
+            <SectionTitle>오목이 가방 속 편지</SectionTitle>
+            <SavedLetterList ids={state.savedLetters} />
+          </section>
+        )}
 
         <section>
           <SectionTitle>온기와 함께하기</SectionTitle>

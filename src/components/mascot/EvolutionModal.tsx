@@ -17,7 +17,7 @@ type Props = {
   onClose: () => void;
 };
 
-/** 뱁새가 자랐을 때 보여주는 전체 화면 축하 연출: 이전 모습이 흔들리다 새 모습으로 바뀐다 */
+/** 오목이가 자랐을 때 보여주는 전체 화면 축하 연출: 이전 모습이 흔들리다 새 모습으로 바뀐다 */
 export function EvolutionModal({ open, from, to, name = DEFAULT_BIRD_NAME, onClose }: Props) {
   if (!open) return null;
   // 열릴 때마다 새로 마운트해서 '흔들림 → 등장' 연출을 처음부터 다시 보여준다

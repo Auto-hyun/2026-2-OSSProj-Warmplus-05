@@ -26,6 +26,19 @@ if [ ! -d node_modules ]; then
   npm install || { echo "설치에 실패했어요. 인터넷 연결을 확인해 주세요."; pause_and_exit 1; }
 fi
 
+# 이 폴더의 온기 서버가 이미 켜져 있으면 새로 켜지 않고 그 화면을 연다.
+# (Next.js 16은 한 폴더에 개발 서버를 하나만 허락해서, 두 번째 서버는 켜지자마자 꺼진다)
+LOCK=.next/dev/lock
+if [ -f "$LOCK" ]; then
+  RUNNING_PID=$(sed -n 's/.*"pid":\([0-9]*\).*/\1/p' "$LOCK")
+  RUNNING_URL=$(sed -n 's/.*"appUrl":"\([^"]*\)".*/\1/p' "$LOCK")
+  if [ -n "$RUNNING_PID" ] && [ -n "$RUNNING_URL" ] && ps -p "$RUNNING_PID" -o command= | grep -q next; then
+    echo "온기가 이미 켜져 있어요. 새로 켜지 않고 그 화면을 열게요 → $RUNNING_URL"
+    open "$RUNNING_URL"
+    pause_and_exit 0
+  fi
+fi
+
 # 3000번부터 비어 있는 포트를 찾는다
 PORT=3000
 while lsof -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; do PORT=$((PORT + 1)); done
@@ -41,7 +54,16 @@ URL="http://localhost:$PORT"
     sleep 1
   done
 ) &
+OPENER=$!
 
 echo "온기를 실행합니다 → $URL"
 echo "끄려면 이 창에서 Ctrl+C 를 누르세요."
 npm run dev -- --port "$PORT"
+STATUS=$?
+kill "$OPENER" 2>/dev/null
+# Ctrl+C(130)로 끈 게 아니면 창이 바로 닫히지 않게 멈춰서 오류를 보여준다
+if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 130 ]; then
+  echo
+  echo "서버가 멈췄어요. 위에 나온 오류 내용을 확인해 주세요."
+  pause_and_exit "$STATUS"
+fi

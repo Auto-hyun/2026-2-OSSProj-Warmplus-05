@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
+import { IntroStory } from '@/components/intro/IntroStory';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button } from '@/components/ui/Button';
 import { useOngi, useStore } from '@/lib/storage/useOngi';
+import { LoginScreen } from './LoginScreen';
 
 const NAME_MAX = 10;
 const SUGGESTIONS = ['콩이', '보리', '솜이', '뭉치', '온새'];
@@ -24,7 +26,7 @@ function NamingScreen() {
       <Mascot stage={1} size="lg" decorative />
       <h1 className="mt-4 text-[22px] font-bold text-ink-900">작은 알 하나가 도착했어요</h1>
       <p className="mt-2 text-[15px] leading-relaxed text-ink-600">
-        이 알 속 뱁새와 매일 이야기를 나누고,
+        이 알 속 오목이와 매일 이야기를 나누고,
         <br />
         미션을 하면 함께 자라요. 이름을 지어주세요.
       </p>
@@ -37,7 +39,7 @@ function NamingScreen() {
         }}
       >
         <label htmlFor="bird-name-first" className="sr-only">
-          뱁새 이름
+          오목이 이름
         </label>
         <input
           id="bird-name-first"
@@ -79,17 +81,25 @@ function NamingScreen() {
           onClick={() => store.completeNaming()}
           className="mt-2 min-h-11 w-full rounded-2xl text-sm text-ink-400 active:bg-black/5"
         >
-          나중에 할게요 (뱁새로 부를게요)
+          나중에 할게요 (오목이로 부를게요)
         </button>
       </form>
     </main>
   );
 }
 
-/** 이름을 짓기 전에는 앱 화면 대신 이름 짓기 화면을 보여준다 */
-export function NamingGate({ children }: { children: ReactNode }) {
-  const named = useOngi((s) => s.profile.named);
+/**
+ * 처음 방문이면 카카오 로그인 → 이름 짓기 → 시작 화면(먼저 도착한 편지)을 마친 뒤에 앱 화면을 보여준다.
+ * notice(기록이 저장되지 않는다는 안내 등)는 로그인·이름 짓기·앱 화면 위에 붙인다. 시작 화면은 고정 상단 바에 따로 보여준다.
+ */
+export function NamingGate({ children, notice }: { children: ReactNode; notice?: ReactNode }) {
+  const step = useOngi(({ profile }) => (!profile.signedIn ? 'login' : !profile.named ? 'naming' : !profile.introSeen ? 'intro' : 'app'));
+  if (step === 'intro') return <IntroStory />;
   // 하이드레이션 전(undefined)에는 원래 화면(스켈레톤)을 그대로 둔다
-  if (named === false) return <NamingScreen />;
-  return <>{children}</>;
+  return (
+    <>
+      {notice}
+      {step === 'login' ? <LoginScreen /> : step === 'naming' ? <NamingScreen /> : children}
+    </>
+  );
 }

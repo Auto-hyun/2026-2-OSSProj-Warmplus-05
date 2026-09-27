@@ -21,7 +21,7 @@ describe('useOngi', () => {
   it('클라이언트에서는 선택한 값을 준다', async () => {
     const { useOngi } = await loadHooks();
     const { result } = renderHook(() => useOngi((s) => s.profile.birdName));
-    expect(result.current).toBe('뱁새');
+    expect(result.current).toBe('오목이');
   });
 
   it('서버 렌더(빌드 시점)에는 값을 주지 않는다', async () => {

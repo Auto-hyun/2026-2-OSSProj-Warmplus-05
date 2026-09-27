@@ -35,7 +35,7 @@ export function ProfileCard({ birdName, stage, count, daysTogether, onRename }: 
   }
 
   return (
-    <section aria-label="나의 뱁새" className="rounded-3xl bg-surface p-5">
+    <section aria-label="나의 오목이" className="rounded-3xl bg-surface p-5">
       <div className="flex items-center gap-4">
         <div className="shrink-0 rounded-full bg-yellow-100">
           <Mascot stage={stage} size="md" />
@@ -64,7 +64,7 @@ export function ProfileCard({ birdName, stage, count, daysTogether, onRename }: 
         <ProgressBar value={growth.ratio} label="다음 단계까지 진행률" />
       </div>
 
-      <BottomSheet open={editing} onClose={() => setEditing(false)} title="뱁새 이름 바꾸기">
+      <BottomSheet open={editing} onClose={() => setEditing(false)} title="오목이 이름 바꾸기">
         <form
           onSubmit={(e) => {
             e.preventDefault();

@@ -26,7 +26,7 @@ describe('Mascot', () => {
 
   it('누르면 짧은 한마디를 한다', async () => {
     render(<Mascot stage={4} size="lg" interactive />);
-    await userEvent.click(screen.getByRole('button', { name: '뱁새와 인사하기' }));
+    await userEvent.click(screen.getByRole('button', { name: '오목이와 인사하기' }));
     expect(screen.getByRole('status')).toHaveTextContent(/.+/);
   });
 });

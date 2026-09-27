@@ -99,9 +99,9 @@ export function MissionScreen() {
           </p>
         </div>
 
-        <section aria-label="뱁새 성장" className="rounded-2xl bg-surface p-4">
+        <section aria-label="오목이 성장" className="rounded-2xl bg-surface p-4">
           <div className="flex items-baseline justify-between">
-            <p className="text-[15px] font-semibold text-ink-900">뱁새 성장 · {getStage(growth.current).name}</p>
+            <p className="text-[15px] font-semibold text-ink-900">오목이 성장 · {getStage(growth.current).name}</p>
             <p className="text-[13px] text-ink-600">
               {growth.next ? `다음 단계까지 ${growth.remaining}개` : '다 자랐어요!'}
             </p>

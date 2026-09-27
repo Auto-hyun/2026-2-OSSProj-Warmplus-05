@@ -1,0 +1,1073 @@
+/* 처음 방문 시작 화면 "먼저 도착한 편지" — 팀 시안(먼저_도착한_편지_시작화면.html)의 스타일을 옮긴 것 */
+.root {
+  --bg: #fdfaf5;
+  --surface: #ffffff;
+  --paper: #fffcf4;
+  --paper-ink: #3a332c;
+  --paper-line: #efe4cf;
+  --yellow: #f7d749;
+  --yellow-100: #fff4cc;
+  --brown: #85601e;
+  --ink: #2f2b28;
+  --ink-600: #6b655f;
+  --ink-400: #a39d96;
+  --line: #efe9df;
+  --env: #f4e7cb;
+  --env-2: #ead8b0;
+  --env-edge: #dcc592;
+  --pink: #f08a8a;
+  --hand: var(--font-hand), 'Nanum Pen Script', cursive;
+  position: relative;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  /* 화면 밖에서 날아드는 오목이 때문에 페이지가 가로로 넓어지지 않게. clip은 스크롤 영역을 만들지 않아 sticky 장면이 그대로 동작한다 */
+  overflow-x: clip;
+}
+.root img {
+  max-width: 100%;
+  display: block;
+}
+.root button {
+  font: inherit;
+  color: inherit;
+}
+.root :focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+/* 상단 바 */
+.top {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(var(--bg) 60%, transparent);
+  pointer-events: none;
+}
+.top {
+  flex-wrap: wrap;
+}
+/* 기록이 저장되지 않는 브라우저 안내 (상단 바 두 번째 줄) */
+.notice {
+  flex-basis: 100%;
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--yellow-100);
+  color: var(--ink-600);
+  font-size: 12px;
+  text-align: center;
+}
+.logo {
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+.logo sup {
+  color: var(--brown);
+  font-size: 13px;
+  margin-left: 1px;
+}
+.bagdots {
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.bagdots.on {
+  opacity: 1;
+}
+.bagdots i {
+  width: 18px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1.5px solid var(--env-edge);
+  position: relative;
+  transition: background 0.3s, transform 0.3s;
+}
+.bagdots i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom right, transparent 48%, var(--env-edge) 49%, var(--env-edge) 55%, transparent 56%),
+    linear-gradient(to bottom left, transparent 48%, var(--env-edge) 49%, var(--env-edge) 55%, transparent 56%);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  background-position: left top, right top;
+  opacity: 0.8;
+}
+.bagdots i.done {
+  background: var(--yellow);
+  border-color: #d9b52a;
+  transform: translateY(-2px);
+}
+.scrollbar {
+  position: fixed;
+  z-index: 41;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: 3px;
+  pointer-events: none;
+}
+.scrollbar span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
+  background: var(--yellow);
+}
+
+/* 공통 무대 */
+.scene {
+  position: relative;
+}
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+.hand {
+  font-family: var(--hand);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* 1. 편지 도착 */
+.hero {
+  height: 420vh;
+}
+.heroCopy {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  top: 22%;
+  margin: 0;
+}
+.heroCopy h1 {
+  font-family: var(--hand);
+  font-weight: 400;
+  font-size: clamp(52px, 15vw, 64px);
+  line-height: 1.02;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.heroCopy p {
+  margin: 18px 0 0;
+  color: var(--ink-600);
+  font-size: 15px;
+}
+.peek {
+  position: absolute;
+  right: -6px;
+  top: 52%;
+  width: 92px;
+}
+.flybird {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 190px;
+  margin: -60px 0 0 -95px;
+  opacity: 0;
+  will-change: transform;
+}
+.perch {
+  position: absolute;
+  width: 88px;
+  opacity: 0;
+  z-index: 9;
+  will-change: transform;
+  left: 50%;
+  top: 50%;
+  margin: -150px 0 0 40px;
+}
+.hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  color: var(--ink-400);
+  font-size: 13px;
+}
+.hint b {
+  display: block;
+  font-weight: 400;
+  font-size: 20px;
+  animation: nudge 1.6s ease-in-out infinite;
+}
+@keyframes nudge {
+  50% {
+    transform: translateY(6px);
+  }
+}
+.envwrap {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 300px;
+  height: 196px;
+  margin: -98px 0 0 -150px;
+  opacity: 0;
+  will-change: transform;
+}
+.envBack,
+.envFront,
+.flap,
+.seal {
+  position: absolute;
+  will-change: transform;
+}
+.envBack {
+  inset: 0;
+  border-radius: 12px;
+  background: var(--env-2);
+  box-shadow: 0 18px 40px rgba(90, 64, 20, 0.18);
+}
+.envFront {
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.envFront svg,
+.flap svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.flap {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 62%;
+  z-index: 4;
+  transform-origin: top center;
+}
+.seal {
+  z-index: 5;
+  left: 50%;
+  top: 48%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: var(--yellow);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 3px #e7c232, 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.seal svg {
+  width: 20px;
+  height: 20px;
+}
+.card {
+  position: absolute;
+  z-index: 2;
+  left: 15px;
+  right: 15px;
+  bottom: 10px;
+  height: 178px;
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--paper-ink);
+  padding: 16px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 16px rgba(90, 64, 20, 0.12);
+  transform-origin: center bottom;
+  will-change: transform;
+  background-image: repeating-linear-gradient(transparent 0 27px, var(--paper-line) 27px 28px);
+  background-position: 0 12px;
+}
+.card .to {
+  font-family: var(--hand);
+  font-size: 22px;
+  color: var(--brown);
+  line-height: 1;
+}
+.card .big {
+  font-family: var(--hand);
+  font-size: 33px;
+  line-height: 1.02;
+  margin: 8px 0 6px;
+}
+.card .small {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #6b5f52;
+  margin: 0;
+}
+.card .from {
+  margin-top: auto;
+  text-align: right;
+  font-family: var(--hand);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--brown);
+}
+
+/* 2. 오목이와 인사 */
+.meet {
+  height: 300vh;
+}
+.meetStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 28px 40px;
+}
+.bubble {
+  position: relative;
+  background: var(--surface);
+  border-radius: 26px;
+  padding: 20px 22px;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(90, 64, 20, 0.1);
+  text-align: center;
+  min-height: 118px;
+  display: grid;
+  place-items: center;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -11px;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  background: var(--surface);
+  transform: rotate(45deg);
+  border-radius: 4px;
+}
+.bubble p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.55;
+  animation: swap 0.45s ease;
+}
+.bubble p small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-600);
+  font-size: 13.5px;
+}
+@keyframes swap {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.meetBird {
+  width: 170px;
+  margin-top: 30px;
+  will-change: transform;
+}
+.meetName {
+  font-weight: 700;
+  font-size: 18px;
+  margin-top: 10px;
+}
+.pdots {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+}
+.pdots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 9px;
+  background: var(--line);
+  transition: width 0.3s, background 0.3s;
+}
+.pdots i.on {
+  width: 18px;
+  background: var(--yellow);
+}
+
+/* 3. 질문 */
+.q {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 92px 20px 56px;
+  display: flex;
+  flex-direction: column;
+}
+.qHead {
+  margin: 0 104px 22px 4px;
+}
+.qCount {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brown);
+  margin: 0;
+}
+.qLead {
+  font-family: var(--hand);
+  font-size: 28px;
+  line-height: 1.1;
+  color: var(--ink-600);
+  margin: 4px 0 0;
+}
+.qWrap {
+  position: relative;
+}
+.qCard {
+  position: relative;
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 26px 18px 18px;
+  box-shadow: 0 10px 30px rgba(90, 64, 20, 0.08);
+  transform-origin: top center;
+  will-change: transform;
+}
+.qBird {
+  position: absolute;
+  top: -62px;
+  right: 10px;
+  width: 92px;
+  z-index: 3;
+  pointer-events: none;
+  will-change: transform;
+}
+.qTitle {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 4px;
+  padding-right: 74px;
+  letter-spacing: -0.01em;
+  white-space: pre-line;
+}
+.qSub {
+  margin: 0 0 18px;
+  color: var(--ink-600);
+  font-size: 14px;
+}
+.qGap {
+  height: 14px;
+}
+.opts {
+  display: grid;
+  gap: 10px;
+}
+.opts.two {
+  grid-template-columns: 1fr 1fr;
+}
+.opt {
+  appearance: none;
+  border: 1.5px solid var(--line);
+  background: var(--bg);
+  border-radius: 18px;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 15.5px;
+  line-height: 1.45;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.opt:hover {
+  border-color: #e4d3a8;
+}
+.opt:active {
+  transform: scale(0.98);
+}
+.opt[aria-pressed='true'] {
+  border-color: var(--yellow);
+  background: var(--yellow-100);
+  font-weight: 500;
+}
+.em {
+  margin-right: 8px;
+}
+.pic {
+  padding: 10px 10px 12px;
+  text-align: center;
+}
+.pic img {
+  height: 86px;
+  width: auto;
+  margin: 4px auto 8px;
+  object-fit: contain;
+}
+.pic span,
+.sky span {
+  font-size: 14px;
+}
+.sky {
+  padding: 8px 8px 12px;
+  text-align: center;
+}
+.sky svg {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+  margin-bottom: 8px;
+}
+.chat {
+  background: var(--bg);
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.chatFrom {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e9dfcf;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: #7b6b55;
+  flex: none;
+}
+.msg {
+  background: var(--surface);
+  border-radius: 16px 16px 16px 4px;
+  padding: 9px 13px;
+  font-size: 15px;
+  box-shadow: 0 1px 0 var(--line);
+}
+.chatName {
+  font-size: 11.5px;
+  color: var(--ink-400);
+  margin: 0 0 4px 40px;
+}
+.reply {
+  justify-items: end;
+}
+.reply .opt {
+  border-radius: 16px 16px 4px 16px;
+  max-width: 88%;
+  padding: 10px 14px;
+}
+.battery {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  margin: 6px 0 14px;
+}
+.battBody {
+  display: flex;
+  gap: 6px;
+  padding: 7px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+}
+.battCap {
+  width: 8px;
+  height: 26px;
+  border-radius: 0 5px 5px 0;
+  background: var(--ink);
+}
+.cell {
+  appearance: none;
+  width: 40px;
+  height: 62px;
+  border-radius: 7px;
+  border: 0;
+  background: var(--line);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.cell.fill {
+  background: var(--yellow);
+}
+.cell.low {
+  background: var(--pink);
+}
+.cell:active {
+  transform: scale(0.94);
+}
+.battLabel {
+  text-align: center;
+  margin: 0 0 14px;
+  color: var(--ink-600);
+  font-size: 15px;
+  min-height: 24px;
+}
+.primary {
+  appearance: none;
+  border: 0;
+  border-radius: 18px;
+  background: var(--yellow);
+  color: #2f2b28;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 16px;
+  width: 100%;
+  cursor: pointer;
+}
+.primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.topic {
+  padding: 12px 13px;
+}
+.topic b {
+  display: block;
+  font-size: 15px;
+}
+.topic small {
+  display: block;
+  color: var(--ink-600);
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin-top: 3px;
+}
+.reaction {
+  margin: 18px 6px 0;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s, transform 0.35s;
+}
+.reaction.on {
+  opacity: 1;
+  transform: none;
+}
+.reaction .hand {
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+/* 4. 편지함 뒤지기 */
+.search {
+  height: 300vh;
+}
+.searchStage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0 30px;
+}
+.searchText {
+  font-family: var(--hand);
+  font-size: 30px;
+  line-height: 1.15;
+  text-align: center;
+  margin: 0 28px 26px;
+  min-height: 70px;
+}
+.shelf {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+}
+.shelfRow {
+  position: absolute;
+  left: 0;
+  top: 18px;
+  display: flex;
+  gap: 14px;
+  will-change: transform;
+}
+.mini {
+  flex: none;
+  width: 92px;
+  height: 62px;
+  border-radius: 8px;
+  background: var(--env);
+  position: relative;
+  box-shadow: 0 4px 10px rgba(90, 64, 20, 0.12);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  font-size: 11.5px;
+  color: #7a6440;
+}
+.mini::before,
+.found::before {
+  content: '';
+  position: absolute;
+  background: linear-gradient(to bottom right, transparent 49%, var(--env-edge) 50%, transparent 52%),
+    linear-gradient(to bottom left, transparent 49%, var(--env-edge) 50%, transparent 52%);
+  background-size: 50% 100%;
+  background-repeat: no-repeat;
+  background-position: left, right;
+}
+.mini::before {
+  inset: 0 0 40% 0;
+}
+.found::before {
+  inset: 0 0 38% 0;
+}
+.searchBird {
+  width: 170px;
+  margin-top: 8px;
+  will-change: transform;
+}
+.found {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 98px;
+  margin: -84px 0 0 -75px;
+  border-radius: 12px;
+  background: var(--env);
+  box-shadow: 0 14px 30px rgba(90, 64, 20, 0.2);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+  color: #6c552d;
+  font-weight: 700;
+  font-size: 14px;
+  opacity: 0;
+  z-index: 4;
+}
+.dot {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--pink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
+
+/* 5. 먼저 도착한 편지 */
+.letterSec {
+  padding: 96px 20px 20px;
+}
+.arrive {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin: 0 4px 20px;
+}
+.arrive img {
+  width: 96px;
+  flex: none;
+}
+.arrive p {
+  margin: 0 0 10px;
+  font-family: var(--hand);
+  font-size: 30px;
+  line-height: 1.12;
+}
+.paper {
+  position: relative;
+  background: var(--paper);
+  color: var(--paper-ink);
+  border-radius: 6px;
+  padding: 26px 24px 28px;
+  box-shadow: 0 1px 0 var(--paper-line), 0 16px 34px rgba(90, 64, 20, 0.14);
+  transform-origin: top center;
+  background-image: repeating-linear-gradient(transparent 0 31px, var(--paper-line) 31px 32px);
+  background-position: 0 70px;
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.5s;
+}
+.paper.fold {
+  transform: perspective(900px) rotateX(-70deg);
+  opacity: 0;
+}
+.ph {
+  font-size: 12.5px;
+  color: #8a7658;
+  margin: 0 0 2px;
+}
+.paper h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  padding-right: 58px;
+}
+.meta {
+  margin: 0;
+  font-size: 13px;
+  color: #8a7658;
+}
+.paper.replyPaper {
+  margin-top: -8px;
+  rotate: -1deg;
+}
+.replyPaper .body {
+  margin: 0;
+  font-family: var(--hand);
+  font-size: 27px;
+  line-height: 32px;
+}
+.sign {
+  text-align: right;
+  font-family: var(--hand);
+  font-size: 24px;
+  color: var(--brown);
+  margin: 10px 0 0;
+}
+.readAll {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--yellow-100);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.stamp {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 48px;
+  height: 58px;
+  background: var(--yellow);
+  border-radius: 3px;
+  -webkit-mask: radial-gradient(circle at 3px 3px, transparent 2.4px, #000 2.6px) -3px -3px/7px 7px;
+  mask: radial-gradient(circle at 3px 3px, transparent 2.4px, #000 2.6px) -3px -3px/7px 7px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+.note {
+  margin: 18px 6px 0;
+  font-size: 14px;
+  color: var(--ink-600);
+  line-height: 1.6;
+}
+.care {
+  margin: 18px 0 0;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  padding: 18px;
+}
+.care p {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+.care a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-top: 8px;
+  font-size: 15px;
+}
+.care a b {
+  font-size: 17px;
+  white-space: nowrap;
+  margin-left: 10px;
+}
+.bag {
+  margin: 34px 0 0;
+  text-align: center;
+}
+.bagQ {
+  font-family: var(--hand);
+  font-size: 29px;
+  line-height: 1.15;
+  margin: 0 20px 6px;
+}
+.bagBird {
+  width: 180px;
+  margin: 0 auto;
+  position: relative;
+}
+.bagBird.bounce {
+  animation: bounce 0.5s ease;
+}
+@keyframes bounce {
+  40% {
+    transform: translateY(-10px) rotate(-3deg);
+  }
+}
+.bag .primary {
+  margin-top: 14px;
+}
+.flyenv {
+  position: fixed;
+  z-index: 60;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 40px;
+  border-radius: 6px;
+  /* 시작 화면 바깥(body)에 붙으므로 변수 대신 색을 직접 쓴다 */
+  background: #f4e7cb;
+  box-shadow: 0 6px 14px rgba(90, 64, 20, 0.2);
+  pointer-events: none;
+}
+.toast {
+  position: fixed;
+  z-index: 70;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  background: #2f2b28;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  width: max-content;
+  max-width: calc(100% - 40px);
+  animation: toastIn 0.3s ease;
+}
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+}
+
+/* 6. 나만의 오목이 */
+.eggSec {
+  padding: 70px 24px 40px;
+  text-align: center;
+}
+.egg {
+  width: 190px;
+  margin: 0 auto;
+  transform-origin: 50% 90%;
+  animation: wobble 3.2s ease-in-out infinite;
+}
+@keyframes wobble {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0);
+  }
+  76% {
+    transform: rotate(-4deg);
+  }
+  82% {
+    transform: rotate(4deg);
+  }
+  88% {
+    transform: rotate(-2deg);
+  }
+}
+.eggSec h2 {
+  font-family: var(--hand);
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1.1;
+  margin: 18px 0 8px;
+}
+.eggSec > p {
+  color: var(--ink-600);
+  margin: 0 0 22px;
+  font-size: 15px;
+}
+.ghost {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--ink-600);
+  padding: 14px;
+  font-size: 14.5px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.mailbox {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  text-align: left;
+  margin: 40px 0 0;
+  padding: 18px;
+  border-radius: 22px;
+  background: var(--surface);
+}
+.mailbox img {
+  width: 74px;
+  flex: none;
+}
+.mailbox p {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--ink-600);
+}
+.mailbox p b {
+  display: block;
+  color: var(--ink);
+  font-size: 15.5px;
+  margin-bottom: 2px;
+}
+.demo {
+  margin: 26px 0 0;
+  text-align: left;
+  border: 1.5px dashed var(--line);
+  border-radius: 18px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--ink-600);
+}
+.demo summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--ink);
+}
+.demo dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 12px 0 6px;
+}
+.demo dt {
+  color: var(--ink-400);
+}
+.demo dd {
+  margin: 0;
+  color: var(--ink);
+}
+.foot {
+  padding: 10px 24px 60px;
+  text-align: center;
+  color: var(--ink-400);
+  font-size: 12px;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint b,
+  .egg {
+    animation: none;
+  }
+}

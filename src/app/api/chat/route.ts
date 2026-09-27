@@ -33,7 +33,7 @@ function errorResponse(error: string, status: number): Response {
 }
 
 /**
- * 뱁새 답장 API.
+ * 오목이 답장 API.
  * - 정상: text/plain 스트림
  * - 위기 표현: 모델을 부르지 않고 { type: 'safety', message } JSON
  * - 요청 오류 400, 너무 큰 요청 413, 모델 오류 502

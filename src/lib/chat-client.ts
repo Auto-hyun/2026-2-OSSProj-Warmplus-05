@@ -10,7 +10,7 @@ export const BRIDGE_AFTER_USER_MESSAGES = 3;
 
 const RECENT_LIMIT = 20;
 
-/** 서버로 보낼 메시지: 질문(뱁새) + 최근 대화 limit개. 서버 허용 길이를 넘는 메시지는 자른다 */
+/** 서버로 보낼 메시지: 질문(오목이) + 최근 대화 limit개. 서버 허용 길이를 넘는 메시지는 자른다 */
 export function buildRequestMessages(question: string, messages: StoredMessage[], limit = RECENT_LIMIT): ChatMessage[] {
   return [
     { role: 'assistant', content: question },
@@ -37,7 +37,7 @@ export class ReplyError extends Error {
 /** 이 시간 동안 새 응답(조각)이 없으면 멈춘다 */
 const REPLY_TIMEOUT_MS = 30_000;
 
-/** 뱁새 답장 요청. 스트리밍 조각을 onChunk로 알려주고, 받지 못하면 ReplyError */
+/** 오목이 답장 요청. 스트리밍 조각을 onChunk로 알려주고, 받지 못하면 ReplyError */
 export async function requestReply(
   messages: ChatMessage[],
   onChunk: (text: string) => void,

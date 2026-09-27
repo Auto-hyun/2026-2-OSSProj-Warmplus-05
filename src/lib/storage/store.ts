@@ -25,6 +25,12 @@ export type OngiStore = {
   setLastSeenStage(stage: StageNo): void;
   /** 심리테스트 결과 저장 (테스트마다 가장 최근 것만) */
   saveTestResult(testId: string, resultId: string): void;
+  /** 온기레터를 오목이 가방에 담는다 (최근 것이 앞, 같은 편지는 한 번만) */
+  saveLetter(letterId: number): void;
+  /** 처음 방문 시작 화면을 끝까지 봤다 */
+  completeIntro(): void;
+  /** 카카오 로그인 화면을 지났다 (지금은 화면만. 나중에 Supabase 카카오 로그인이 끝났을 때 부른다) */
+  completeLogin(): void;
   markChatNoticeSeen(): void;
   resetAll(): void;
   demo: {
@@ -142,6 +148,18 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
 
     saveTestResult(testId, resultId) {
       set({ ...state, tests: { ...state.tests, [testId]: { resultId, at: clock().toISOString() } } });
+    },
+
+    saveLetter(letterId) {
+      set({ ...state, savedLetters: [letterId, ...state.savedLetters.filter((id) => id !== letterId)] });
+    },
+
+    completeIntro() {
+      set({ ...state, profile: { ...state.profile, introSeen: true } });
+    },
+
+    completeLogin() {
+      set({ ...state, profile: { ...state.profile, signedIn: true } });
     },
 
     markChatNoticeSeen() {

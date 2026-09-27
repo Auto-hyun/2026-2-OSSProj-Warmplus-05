@@ -36,7 +36,7 @@ describe('buildRequestMessages', () => {
     ]);
   });
 
-  it('서버 허용 길이(사용자 1,000자·뱁새 2,000자)보다 긴 저장 메시지는 잘라서 보낸다 (그날 대화가 계속 실패하지 않게)', () => {
+  it('서버 허용 길이(사용자 1,000자·오목이 2,000자)보다 긴 저장 메시지는 잘라서 보낸다 (그날 대화가 계속 실패하지 않게)', () => {
     const long: StoredMessage[] = [
       { role: 'user', content: '가'.repeat(1500), at: '' },
       { role: 'assistant', content: '나'.repeat(2500), at: '' },

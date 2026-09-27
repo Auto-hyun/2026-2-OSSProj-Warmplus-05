@@ -1,4 +1,4 @@
-/** 뱁새가 건네는 오늘의 질문 (아래 꼬리가 마스코트를 가리키는 말풍선) */
+/** 오목이가 건네는 오늘의 질문 (아래 꼬리가 마스코트를 가리키는 말풍선) */
 export function QuestionBubble({ question }: { question: string }) {
   return (
     <div className="relative w-full max-w-[320px] rounded-3xl bg-surface px-5 py-4 text-center shadow-[0_6px_20px_rgba(47,43,40,0.08)]">

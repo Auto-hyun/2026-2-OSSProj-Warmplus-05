@@ -47,6 +47,10 @@ export type OngiState = {
     birdName: string;
     /** 처음 실행 때 이름 짓기를 마쳤는지 (건너뛰어도 true) */
     named: boolean;
+    /** 처음 방문 시작 화면(먼저 도착한 편지)을 끝까지 봤는지 */
+    introSeen: boolean;
+    /** 카카오 로그인 화면을 지났는지. 지금은 화면만 있어서 버튼을 누르면 true (나중에 Supabase 카카오 로그인 세션으로 바꾼다) */
+    signedIn: boolean;
     lastSeenStage: StageNo;
   };
   missions: {
@@ -57,6 +61,8 @@ export type OngiState = {
   chats: Record<DayKey, ChatDay>;
   /** 테스트 id → 가장 최근 결과 */
   tests: Record<string, TestRecord>;
+  /** 오목이 가방에 담은 온기레터 id (최근 것이 앞) */
+  savedLetters: number[];
   settings: Settings;
 };
 

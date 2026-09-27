@@ -16,11 +16,11 @@ describe('대화 페이지', () => {
     expect(metadata.title).toBe('내 생각 얘기하기 · 온기');
   });
 
-  it('처음 실행이면 주소로 바로 들어와도 대화보다 이름 짓기를 먼저 보여준다', async () => {
+  it('처음 방문이면 주소로 바로 들어와도 대화보다 카카오 로그인 화면을 먼저 보여준다', async () => {
     vi.resetModules();
     const { default: ChatPage } = await import('./page');
     render(<ChatPage />);
-    expect(await screen.findByRole('heading', { name: '작은 알 하나가 도착했어요' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '카카오로 시작하기' })).toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: '메시지 입력' })).not.toBeInTheDocument();
   });
 });

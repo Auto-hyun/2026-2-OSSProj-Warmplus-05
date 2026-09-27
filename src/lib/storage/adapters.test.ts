@@ -12,16 +12,18 @@ import { FakeStorage } from '@/test/fake-storage';
 const NOW = new Date('2026-09-26T01:00:00Z'); // 한국 2026-09-26 10:00
 
 describe('createDefaultState', () => {
-  it('처음 상태: 이름 뱁새, 1단계, 오늘 시작, 기록 없음', () => {
+  it('처음 상태: 이름 오목이, 1단계, 오늘 시작, 기록 없음', () => {
     const s = createDefaultState(NOW);
     expect(s.version).toBe(1);
-    expect(s.profile.birdName).toBe('뱁새');
+    expect(s.profile.birdName).toBe('오목이');
     expect(s.profile.lastSeenStage).toBe(1);
     expect(s.profile.startedOn).toBe('2026-09-26');
     expect(s.profile.installId.length).toBeGreaterThan(0);
     expect(s.missions).toEqual({ records: {}, swaps: {} });
     expect(s.chats).toEqual({});
     expect(s.tests).toEqual({});
+    expect(s.profile.introSeen).toBe(false);
+    expect(s.savedLetters).toEqual([]);
     expect(s.settings).toEqual({ demoMode: false, dayOffset: 0, stageOverride: null, seenChatNotice: false });
   });
 
@@ -65,12 +67,13 @@ describe('parseState — 이름 짓기 도입 전 데이터', () => {
     return JSON.stringify({ ...state, profile });
   }
 
-  it('이름을 바꾼 적 있으면 지은 것으로, 아직 뱁새면 짓지 않은 것으로 본다', () => {
+  it('이름을 바꾼 적 있으면 지은 것으로, 기본 이름(예전 기본값 뱁새 포함) 그대로면 짓지 않은 것으로 본다', () => {
     expect(parseState(withoutNamed('콩이'))?.profile.named).toBe(true);
+    expect(parseState(withoutNamed('오목이'))?.profile.named).toBe(false);
     expect(parseState(withoutNamed('뱁새'))?.profile.named).toBe(false);
   });
 
-  it('이미 미션이나 대화 기록이 있으면 이름이 뱁새 그대로여도 지은 것으로 본다 (처음 화면을 다시 띄우지 않게)', () => {
+  it('이미 미션이나 대화 기록이 있으면 이름이 기본값 그대로여도 지은 것으로 본다 (처음 화면을 다시 띄우지 않게)', () => {
     const withMission = withoutNamed('뱁새', (s) => {
       s.missions.records['2026-09-20'] = { missionId: 'walk-10', completedAt: '2026-09-20T01:00:00.000Z' };
     });
@@ -122,6 +125,30 @@ describe('parseState — 값까지 검사', () => {
       };
     });
     expect(s?.chats).toEqual({ '2026-09-25': good });
+  });
+
+  it('시작 화면 기록이 없던 예전 데이터: 이름을 지었으면 본 것으로, 아니면 안 본 것으로 본다', () => {
+    const named = parseEdited((d) => {
+      delete d.profile.introSeen;
+      d.profile.named = true;
+    });
+    const fresh = parseEdited((d) => {
+      delete d.profile.introSeen;
+      d.profile.named = false;
+    });
+    expect(named?.profile.introSeen).toBe(true);
+    expect(fresh?.profile.introSeen).toBe(false);
+  });
+
+  it('카카오 로그인 화면을 지났는지: 처음엔 아니고, 값이 없던 예전 데이터도 로그인 전으로 읽는다', () => {
+    expect(createDefaultState(NOW).profile.signedIn).toBe(false);
+    expect(parseEdited((d) => delete d.profile.signedIn)?.profile.signedIn).toBe(false);
+    expect(parseEdited((d) => (d.profile.signedIn = true))?.profile.signedIn).toBe(true);
+  });
+
+  it('가방에 담은 편지는 숫자 id만 겹치지 않게 남긴다 (예전 데이터는 빈 목록)', () => {
+    expect(parseEdited((d) => delete (d as { savedLetters?: unknown }).savedLetters)?.savedLetters).toEqual([]);
+    expect(parseEdited((d) => ((d as { savedLetters?: unknown }).savedLetters = [3, 'x', 3, 7]))?.savedLetters).toEqual([3, 7]);
   });
 
   it('심리테스트 결과가 없던 예전 데이터는 빈 기록으로, 모양이 잘못된 결과는 빼고 읽는다', () => {

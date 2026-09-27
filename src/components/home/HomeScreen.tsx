@@ -54,7 +54,7 @@ export function HomeScreen() {
       <div className="px-5">
         <p className="text-sm text-ink-600">{formatKoreanDate(today)}</p>
 
-        <section aria-label="오늘의 뱁새" className="mt-5 flex flex-col items-center">
+        <section aria-label="오늘의 오목이" className="mt-5 flex flex-col items-center">
           <QuestionBubble question={questionFor(today)} />
           <Mascot stage={stage} size="lg" interactive name={state.profile.birdName} className="mt-4" />
           <p className="mt-2 text-lg font-bold text-ink-900">{state.profile.birdName}</p>

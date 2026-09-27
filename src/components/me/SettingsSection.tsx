@@ -35,7 +35,7 @@ export function SettingsSection({ version, onReset, onVersionTap }: Props) {
       <ConfirmDialog
         open={confirming}
         title="기록을 모두 지울까요?"
-        description="미션·대화·뱁새 성장 기록이 모두 사라지고 되돌릴 수 없어요."
+        description="미션·대화·오목이 성장 기록이 모두 사라지고 되돌릴 수 없어요."
         confirmLabel="모두 지우기"
         onCancel={() => setConfirming(false)}
         onConfirm={() => {

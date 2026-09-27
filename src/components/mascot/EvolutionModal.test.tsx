@@ -7,7 +7,7 @@ describe('EvolutionModal', () => {
   it('새 단계의 이름·설명과 축하 문구를 보여주고, 버튼을 누르면 닫는다', async () => {
     const onClose = vi.fn();
     render(<EvolutionModal open from={1} to={2} onClose={onClose} />);
-    expect(screen.getByRole('dialog', { name: '뱁새가 자랐어요!' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: '오목이가 자랐어요!' })).toBeInTheDocument();
     expect(screen.getByText(getStage(2).name, { exact: false })).toBeInTheDocument();
     expect(screen.getByText(getStage(2).description)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: '홈에서 만나기' }));

@@ -129,7 +129,7 @@ describe('renameBird', () => {
   });
 });
 
-describe('뱁새 이름 짓기 (처음 실행)', () => {
+describe('오목이 이름 짓기 (처음 실행)', () => {
   it('처음에는 아직 이름을 짓지 않은 상태다', () => {
     const { store } = freshStore();
     expect(store.getState().profile.named).toBe(false);
@@ -144,17 +144,17 @@ describe('뱁새 이름 짓기 (처음 실행)', () => {
     expect(store.getState().profile).toMatchObject({ birdName: '콩이', named: true });
   });
 
-  it('나중에 하기를 고르면 뱁새라는 이름으로 지은 상태가 된다', () => {
+  it('나중에 하기를 고르면 오목이라는 이름으로 지은 상태가 된다', () => {
     const { store } = freshStore();
     expect(store.completeNaming().ok).toBe(true);
-    expect(store.getState().profile).toMatchObject({ birdName: '뱁새', named: true });
+    expect(store.getState().profile).toMatchObject({ birdName: '오목이', named: true });
   });
 
   it('기록을 모두 지우면 다시 이름을 지어야 한다', () => {
     const { store } = freshStore();
     store.completeNaming('콩이');
     store.resetAll();
-    expect(store.getState().profile).toMatchObject({ birdName: '뱁새', named: false });
+    expect(store.getState().profile).toMatchObject({ birdName: '오목이', named: false });
   });
 });
 
@@ -175,7 +175,7 @@ describe('설정·프로필', () => {
     store.resetAll();
     const s = store.getState();
     expect(s.profile.installId).toBe('install-x');
-    expect(s.profile.birdName).toBe('뱁새');
+    expect(s.profile.birdName).toBe('오목이');
     expect(completedCount(s)).toBe(0);
     expect(s.chats).toEqual({});
   });
@@ -231,7 +231,7 @@ describe('깨진 저장 데이터', () => {
     const storage = new FakeStorage();
     storage.setItem(STORAGE_KEY, '{"version":1,"profile":');
     const store = createStore(createLocalStorageAdapter(storage)!, clock);
-    expect(store.getState().profile.birdName).toBe('뱁새');
+    expect(store.getState().profile.birdName).toBe('오목이');
     expect(storage.getItem(BACKUP_KEY)).toBe('{"version":1,"profile":');
   });
 });
@@ -283,5 +283,35 @@ describe('saveTestResult', () => {
     store.saveTestResult('weather', 'sunny');
     store.resetAll();
     expect(store.getState().tests).toEqual({});
+  });
+});
+
+describe('시작 화면 (먼저 도착한 편지)', () => {
+  it('가방에 담은 편지는 최근 것이 앞에 오고, 같은 편지는 한 번만 남는다', () => {
+    const { store } = freshStore();
+    store.saveLetter(3475151);
+    store.saveLetter(3545925);
+    store.saveLetter(3475151);
+    expect(store.getState().savedLetters).toEqual([3475151, 3545925]);
+  });
+
+  it('시작 화면을 마치면 다시 보여주지 않고, 기록을 모두 지우면 처음부터 다시 본다', () => {
+    const { store } = freshStore();
+    expect(store.getState().profile.introSeen).toBe(false);
+    store.completeIntro();
+    expect(store.getState().profile.introSeen).toBe(true);
+    store.saveLetter(3475151);
+    store.resetAll();
+    expect(store.getState().profile.introSeen).toBe(false);
+    expect(store.getState().savedLetters).toEqual([]);
+  });
+
+  it('카카오 로그인 화면에서 시작하면 로그인 전 상태를 벗어나고, 기록을 모두 지우면 로그인 화면부터 다시', () => {
+    const { store } = freshStore();
+    expect(store.getState().profile.signedIn).toBe(false);
+    store.completeLogin();
+    expect(store.getState().profile.signedIn).toBe(true);
+    store.resetAll();
+    expect(store.getState().profile.signedIn).toBe(false);
   });
 });

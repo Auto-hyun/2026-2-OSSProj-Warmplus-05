@@ -16,7 +16,7 @@ describe('GrowthLine', () => {
 
   it('다 자라면 완성 문구를 보여준다', () => {
     render(<GrowthLine count={30} />);
-    expect(screen.getByText('뱁새가 다 자랐어요!')).toBeInTheDocument();
+    expect(screen.getByText('오목이가 다 자랐어요!')).toBeInTheDocument();
   });
 
   it('완성 문구에 지은 이름을 쓴다', () => {
