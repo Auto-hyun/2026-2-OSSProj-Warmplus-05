@@ -265,3 +265,23 @@ describe('여러 탭', () => {
     expect(changed).not.toHaveBeenCalled();
   });
 });
+
+describe('saveTestResult', () => {
+  it('테스트마다 가장 최근 결과와 시각만 남긴다', () => {
+    const { store } = freshStore();
+    store.saveTestResult('weather', 'cloudy');
+    store.saveTestResult('weather', 'sunny');
+    store.saveTestResult('coping', 'sharer');
+    expect(store.getState().tests).toEqual({
+      weather: { resultId: 'sunny', at: NOW.toISOString() },
+      coping: { resultId: 'sharer', at: NOW.toISOString() },
+    });
+  });
+
+  it('기록을 모두 지우면 테스트 결과도 지운다', () => {
+    const { store } = freshStore();
+    store.saveTestResult('weather', 'sunny');
+    store.resetAll();
+    expect(store.getState().tests).toEqual({});
+  });
+});

@@ -1,5 +1,7 @@
 import { QUESTIONS } from './questions';
 import { MISSIONS, MISSION_THEME_LABEL, getMission, type MissionTheme } from './missions';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { STAGES, getStage } from './stages';
 import { CATEGORIES, getCategory, isCategoryId } from './categories';
 import { HELPLINES } from './helplines';
@@ -52,13 +54,16 @@ describe('성장 단계', () => {
     expect(STAGES.map((s) => s.minMissions)).toEqual([0, 3, 7, 15, 30]);
   });
 
-  it('각 단계는 이름·설명·이미지 경로가 있다', () => {
+  it('단계 이름은 새 진화 그림(2026-09-27)을 따른다', () => {
+    expect(STAGES.map((s) => s.name)).toEqual(['알', '아기새', '편지 오목이', '우체부 오목이', '온기 오목이']);
+    expect(getStage(3).description).toBe('용기를 내어 마음을 전하는 마음');
+  });
+
+  it('각 단계 그림은 새 경로에 실제로 있다 (경로가 바뀌어야 브라우저·이미지 캐시에 옛 그림이 남지 않는다)', () => {
     for (const s of STAGES) {
-      expect(s.name).toBeTruthy();
-      expect(s.description).toBeTruthy();
-      expect(s.image).toBe(`/mascot/stage-${s.no}.png`);
+      expect(s.image).toBe(`/mascot/v2/stage-${s.no}.png`);
+      expect(existsSync(join(process.cwd(), 'public', s.image))).toBe(true);
     }
-    expect(getStage(2).name).toBe('아기 뱁새 (부화 중)');
   });
 });
 

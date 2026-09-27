@@ -81,27 +81,6 @@ body {
   }
 }
 
-/* 1단계 알: 윗껍질 들썩들썩 */
-@keyframes ongi-lid {
-  0%,
-  50%,
-  100% {
-    transform: translateY(0) rotate(0);
-  }
-  57% {
-    transform: translateY(-3.4%) rotate(-1deg);
-  }
-  63% {
-    transform: translateY(-0.6%) rotate(0);
-  }
-  70% {
-    transform: translateY(-2.6%) rotate(1deg);
-  }
-  78% {
-    transform: translateY(0) rotate(0);
-  }
-}
-
 /* 진화 연출: 이전 모습이 흔들리고 → 새 모습이 커지며 등장 */
 @keyframes ongi-wiggle {
   0%,

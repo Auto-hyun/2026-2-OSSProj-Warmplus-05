@@ -9,7 +9,7 @@
 3. `npm run sync:letters`를 다시 돌려도 `image`와 `category`는 유지돼요
 
 ## 공통 스타일 (모든 장면에 붙여 쓰기)
-참고 이미지: `public/mascot/stage-5.png` (캐릭터 일관성을 위해 함께 넣어 주세요)
+참고 이미지: `public/mascot/v2/stage-5.png` (캐릭터 일관성을 위해 함께 넣어 주세요)
 
 ```
 A cute, round, fluffy white long-tailed tit chick (Shima-enaga) mascot with small black bead eyes and a tiny dark beak,

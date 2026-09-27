@@ -78,6 +78,12 @@ export function formatDotDate(iso: string): string {
   return kstFormatter.format(new Date(iso)).replaceAll('-', '.');
 }
 
+/** 저장 시각(ISO) → 한국 날짜 "9월 27일" */
+export function formatShortDate(iso: string): string {
+  const [, m, d] = parse(todayKey(new Date(iso)));
+  return `${m}월 ${d}일`;
+}
+
 /** 일요일 시작 달력 칸. 1일 앞의 빈칸과 말일 뒤의 빈칸은 null, 길이는 7의 배수 */
 export function monthGrid(year: number, month: number): (DayKey | null)[] {
   const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();

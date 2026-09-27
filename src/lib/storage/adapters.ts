@@ -1,6 +1,6 @@
 import { STAGES, type StageNo } from '@/data/stages';
 import { isValidDayKey, todayKey, type DayKey } from '@/lib/date';
-import type { ChatDay, MissionRecord, OngiState, Settings, StorageAdapter, StoredMessage } from './types';
+import type { ChatDay, MissionRecord, OngiState, Settings, StorageAdapter, StoredMessage, TestRecord } from './types';
 
 export const STORAGE_KEY = 'ongi:v1';
 export const BACKUP_KEY = 'ongi:v1:backup';
@@ -24,6 +24,7 @@ export function createDefaultState(now: Date, installId: string = newInstallId()
     profile: { installId, startedOn: todayKey(now), birdName: DEFAULT_BIRD_NAME, named: false, lastSeenStage: 1 },
     missions: { records: {}, swaps: {} },
     chats: {},
+    tests: {},
     settings: { ...DEFAULT_SETTINGS },
   };
 }
@@ -68,6 +69,18 @@ function parseChatDay(v: unknown): ChatDay | null {
   return v as ChatDay;
 }
 
+/** 모양이 맞는 테스트 결과만 남긴다 (예전 데이터에는 없어서 빈 기록) */
+function parseTests(v: unknown): Record<string, TestRecord> {
+  const out: Record<string, TestRecord> = {};
+  if (!isObject(v)) return out;
+  for (const [id, record] of Object.entries(v)) {
+    if (isObject(record) && typeof record.resultId === 'string' && typeof record.at === 'string') {
+      out[id] = { resultId: record.resultId, at: record.at };
+    }
+  }
+  return out;
+}
+
 /** 잘못된 설정 값은 그 값만 기본값으로 (예전 데이터에 없는 값도 채워진다) */
 function parseSettings(v: unknown): Settings {
   const s = isObject(v) ? v : {};
@@ -92,7 +105,7 @@ export function parseState(raw: string | null): OngiState | null {
     return null;
   }
   if (!isObject(data) || data.version !== 1) return null;
-  const { profile, missions, chats, settings } = data;
+  const { profile, missions, chats, tests, settings } = data;
   if (!isObject(profile) || !isObject(missions) || !isObject(missions.records) || !isObject(missions.swaps)) return null;
   if (!isObject(chats)) return null;
 
@@ -115,6 +128,7 @@ export function parseState(raw: string | null): OngiState | null {
       swaps: pickDays(missions.swaps, (v) => (typeof v === 'string' ? v : null)),
     },
     chats: chatDays,
+    tests: parseTests(tests),
     settings: parseSettings(settings),
   };
 }

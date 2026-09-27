@@ -5,6 +5,7 @@ import {
   daysBetween,
   formatDotDate,
   formatKoreanDate,
+  formatShortDate,
   isSameMonth,
   isValidDayKey,
   monthGrid,
@@ -105,5 +106,13 @@ describe('isValidDayKey', () => {
     ['abc', false],
   ])('%s → %s', (key, expected) => {
     expect(isValidDayKey(key)).toBe(expected);
+  });
+});
+
+describe('formatShortDate', () => {
+  it('저장한 시각(ISO)을 한국 날짜 "9월 27일"로', () => {
+    expect(formatShortDate('2026-09-27T01:00:00.000Z')).toBe('9월 27일');
+    // 한국은 이미 다음 날 00:30
+    expect(formatShortDate('2026-09-26T15:30:00.000Z')).toBe('9월 27일');
   });
 });

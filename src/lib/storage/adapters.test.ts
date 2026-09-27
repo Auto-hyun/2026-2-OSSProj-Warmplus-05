@@ -21,6 +21,7 @@ describe('createDefaultState', () => {
     expect(s.profile.installId.length).toBeGreaterThan(0);
     expect(s.missions).toEqual({ records: {}, swaps: {} });
     expect(s.chats).toEqual({});
+    expect(s.tests).toEqual({});
     expect(s.settings).toEqual({ demoMode: false, dayOffset: 0, stageOverride: null, seenChatNotice: false });
   });
 
@@ -121,6 +122,19 @@ describe('parseState — 값까지 검사', () => {
       };
     });
     expect(s?.chats).toEqual({ '2026-09-25': good });
+  });
+
+  it('심리테스트 결과가 없던 예전 데이터는 빈 기록으로, 모양이 잘못된 결과는 빼고 읽는다', () => {
+    expect(parseEdited((d) => delete (d as { tests?: unknown }).tests)?.tests).toEqual({});
+    const s = parseEdited(
+      (d) =>
+        ((d as { tests?: unknown }).tests = {
+          weather: { resultId: 'sunny', at: '2026-09-27T01:00:00.000Z' },
+          coping: { resultId: 3 },
+          'self-esteem': 'warm',
+        }),
+    );
+    expect(s?.tests).toEqual({ weather: { resultId: 'sunny', at: '2026-09-27T01:00:00.000Z' } });
   });
 
   it('설정 값이 잘못됐으면 그 값만 기본값으로 되돌린다', () => {

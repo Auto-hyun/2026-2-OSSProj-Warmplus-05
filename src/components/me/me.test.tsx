@@ -12,9 +12,9 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ back: vi.fn(), push: vi.
 describe('GrowthAlbum', () => {
   it('도달한 단계는 모습을, 아직인 단계는 필요한 미션 수를 보여준다', () => {
     render(<GrowthAlbum reached={2} />);
-    expect(screen.getByRole('img', { name: '알 (부화 전)' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: '아기 뱁새 (부화 중)' })).toBeInTheDocument();
-    expect(screen.queryByRole('img', { name: '어린 뱁새' })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '알' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '아기새' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: '편지 오목이' })).not.toBeInTheDocument();
     expect(screen.getByText('미션 7개')).toBeInTheDocument();
     expect(screen.getByText('미션 30개')).toBeInTheDocument();
   });

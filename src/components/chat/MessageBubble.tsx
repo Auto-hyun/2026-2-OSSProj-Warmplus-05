@@ -1,5 +1,5 @@
 import { Mascot } from '@/components/mascot/Mascot';
-import type { StageNo } from '@/data/stages';
+import { getStage, type StageNo } from '@/data/stages';
 import { josa } from '@/lib/josa';
 import { DEFAULT_BIRD_NAME } from '@/lib/storage/adapters';
 import type { ChatRole } from '@/lib/storage/types';
@@ -18,13 +18,16 @@ function TypingDots({ name }: { name: string }) {
   );
 }
 
-/** 원형 프로필: 단계마다 새의 위치가 달라 얼굴 쪽을 확대해 보여준다 */
+const AVATAR_SCALE = 1.8;
+
+/** 원형 프로필: 단계마다 얼굴 위치가 달라, 얼굴 중심을 동그라미 가운데로 옮겨 확대해 보여준다 */
 function Avatar({ stage }: { stage: StageNo }) {
+  const { x, y } = getStage(stage).face;
   return (
     <div aria-hidden className="size-9 shrink-0 overflow-hidden rounded-full bg-yellow-100">
       <div
         className="size-10 -translate-x-0.5 -translate-y-0.5"
-        style={{ transform: `scale(${stage === 1 ? 1.9 : 1.45})`, transformOrigin: stage === 1 ? '50% 76%' : '50% 52%' }}
+        style={{ transformOrigin: `${x}% ${y}%`, transform: `translate(${50 - x}%, ${50 - y}%) scale(${AVATAR_SCALE})` }}
       >
         <Mascot stage={stage} size="sm" animated={false} decorative />
       </div>

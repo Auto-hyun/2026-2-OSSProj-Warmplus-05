@@ -23,6 +23,8 @@ export type OngiStore = {
   /** 처음 실행 때 이름 짓기. 이름 없이 부르면(나중에 하기) 기본 이름 그대로 */
   completeNaming(name?: string): { ok: boolean };
   setLastSeenStage(stage: StageNo): void;
+  /** 심리테스트 결과 저장 (테스트마다 가장 최근 것만) */
+  saveTestResult(testId: string, resultId: string): void;
   markChatNoticeSeen(): void;
   resetAll(): void;
   demo: {
@@ -136,6 +138,10 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
 
     setLastSeenStage(stage) {
       set({ ...state, profile: { ...state.profile, lastSeenStage: stage } });
+    },
+
+    saveTestResult(testId, resultId) {
+      set({ ...state, tests: { ...state.tests, [testId]: { resultId, at: clock().toISOString() } } });
     },
 
     markChatNoticeSeen() {

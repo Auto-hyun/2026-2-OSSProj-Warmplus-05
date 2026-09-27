@@ -26,6 +26,12 @@ export type MissionRecord = {
   demo?: boolean;
 };
 
+/** 심리테스트의 가장 최근 결과 (고른 답은 저장하지 않는다) */
+export type TestRecord = {
+  resultId: string;
+  at: string;
+};
+
 export type Settings = {
   demoMode: boolean;
   dayOffset: number;
@@ -49,6 +55,8 @@ export type OngiState = {
     swaps: Record<DayKey, string>;
   };
   chats: Record<DayKey, ChatDay>;
+  /** 테스트 id → 가장 최근 결과 */
+  tests: Record<string, TestRecord>;
   settings: Settings;
 };
 

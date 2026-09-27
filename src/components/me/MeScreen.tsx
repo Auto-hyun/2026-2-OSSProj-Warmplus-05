@@ -14,6 +14,7 @@ import { OngiLinks } from './OngiLinks';
 import { ProfileCard } from './ProfileCard';
 import { SettingsSection } from './SettingsSection';
 import { StatsTiles } from './StatsTiles';
+import { TestRecordList } from './TestRecordList';
 
 const APP_VERSION = '0.1.0';
 const SECRET_TAPS = 5;
@@ -77,6 +78,11 @@ export function MeScreen() {
         <section>
           <SectionTitle>마음 기록</SectionTitle>
           <ChatRecordList chats={state.chats} today={today} />
+        </section>
+
+        <section>
+          <SectionTitle>나의 테스트 결과</SectionTitle>
+          <TestRecordList records={state.tests} />
         </section>
 
         <section>
