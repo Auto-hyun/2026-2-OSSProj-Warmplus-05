@@ -6,7 +6,7 @@ import { TabBar } from '@/components/layout/TabBar';
 import { EvolutionWatcher } from '@/components/mascot/EvolutionWatcher';
 import { NamingGate } from '@/components/onboarding/NamingGate';
 
-/** 하단 탭 바가 있는 화면들 (홈·미션·온기레터·나의 온기). 처음 실행이면 오목이 이름 짓기부터 */
+/** 하단 탭 바가 있는 화면들 (미션·심리테스트·홈·온기레터·나의 온기). 처음 실행이면 카카오 로그인·이름 짓기부터 */
 export default function TabsLayout({ children }: { children: ReactNode }) {
   return (
     <MobileShell>

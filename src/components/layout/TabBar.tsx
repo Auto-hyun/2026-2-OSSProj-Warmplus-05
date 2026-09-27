@@ -5,10 +5,11 @@ import { usePathname } from 'next/navigation';
 import { EnvelopeSimpleIcon, FootprintsIcon, HouseIcon, SparkleIcon, UserIcon, type Icon } from '@phosphor-icons/react';
 import { cn } from '@/lib/cn';
 
+/** 홈은 가운데 */
 const TABS: { label: string; href: string; Icon: Icon }[] = [
-  { label: '홈', href: '/', Icon: HouseIcon },
   { label: '미션', href: '/mission', Icon: FootprintsIcon },
   { label: '심리테스트', href: '/tests', Icon: SparkleIcon },
+  { label: '홈', href: '/', Icon: HouseIcon },
   { label: '온기레터', href: '/letters', Icon: EnvelopeSimpleIcon },
   { label: '나의 온기', href: '/me', Icon: UserIcon },
 ];

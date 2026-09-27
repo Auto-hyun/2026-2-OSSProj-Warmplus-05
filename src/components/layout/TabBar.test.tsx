@@ -4,14 +4,14 @@ import { TabBar } from './TabBar';
 const nav = vi.hoisted(() => ({ pathname: '/' }));
 vi.mock('next/navigation', () => ({ usePathname: () => nav.pathname }));
 
-const LABELS = ['홈', '미션', '심리테스트', '온기레터', '나의 온기'];
+const LABELS = ['미션', '심리테스트', '홈', '온기레터', '나의 온기'];
 
 function currentTabs(): string[] {
   return LABELS.filter((label) => screen.getByRole('link', { name: label }).getAttribute('aria-current') === 'page');
 }
 
 describe('TabBar', () => {
-  it('탭 5개가 순서대로 있다 (심리테스트는 세 번째)', () => {
+  it('탭 5개가 순서대로 있다 (홈은 가운데)', () => {
     render(<TabBar />);
     expect(screen.getAllByRole('link').map((a) => a.textContent)).toEqual(LABELS);
   });
