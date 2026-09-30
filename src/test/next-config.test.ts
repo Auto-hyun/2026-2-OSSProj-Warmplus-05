@@ -1,5 +1,5 @@
 // @vitest-environment node
-import nextConfig from '../../next.config';
+import nextConfig from '../next.config';
 
 describe('next.config 헤더', () => {
   it('모든 경로에 기본 보안 헤더를 붙인다', async () => {

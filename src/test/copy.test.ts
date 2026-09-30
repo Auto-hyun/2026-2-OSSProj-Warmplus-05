@@ -13,7 +13,7 @@ function sourceFiles(dir: string): string[] {
 
 describe('앱 문구', () => {
   it("'털어놓기' 대신 '내 생각 얘기하기' 말투를 쓴다", () => {
-    const offenders = sourceFiles('src').filter((file) => /털어놓|털어놔/.test(readFileSync(file, 'utf8')));
+    const offenders = ['app', 'components', 'data', 'lib'].flatMap(sourceFiles).filter((file) => /털어놓|털어놔/.test(readFileSync(file, 'utf8')));
     expect(offenders).toEqual([]);
   });
 });

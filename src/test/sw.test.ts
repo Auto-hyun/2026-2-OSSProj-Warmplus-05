@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const ORIGIN = 'http://localhost';
-const code = readFileSync(resolve(__dirname, '../../public/sw.js'), 'utf8');
+const code = readFileSync(resolve(__dirname, '../public/sw.js'), 'utf8');
 
 type Req = { url: string; method: string; mode: string };
 const keyOf = (req: Req | string) => (typeof req === 'string' ? new URL(req, ORIGIN).href : req.url);
