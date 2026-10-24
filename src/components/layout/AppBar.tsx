@@ -1,10 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowLeftIcon, BirdIcon, MapTrifoldIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, MapTrifoldIcon } from '@phosphor-icons/react';
 import { ButtonLink } from '@/components/ui/Button';
+import { HomeButton } from '@/components/ui/RoundButton';
 
 type Props = {
   title: ReactNode;
@@ -28,14 +28,7 @@ export function AppBar({ title, right, backHref }: Props) {
     <header className="sticky top-0 z-30 bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="flex h-14 items-center gap-1 px-4">
         {pathname !== '/' && backHref === undefined && (
-          <Link
-            href="/"
-            aria-label="오목이 홈"
-            title="오목이 홈"
-            className="-ml-2 grid size-11 shrink-0 place-items-center rounded-full text-ink-900 active:bg-black/5"
-          >
-            <BirdIcon size={24} weight="duotone" aria-hidden />
-          </Link>
+          <HomeButton className="mr-2 size-11 rounded-2xl" />
         )}
         {backHref !== undefined && (
           <button
@@ -47,7 +40,7 @@ export function AppBar({ title, right, backHref }: Props) {
             <ArrowLeftIcon size={24} aria-hidden />
           </button>
         )}
-        <h1 className="min-w-0 flex-1 truncate text-xl font-bold text-ink-900">{title}</h1>
+        <h1 className="min-w-0 flex-1 truncate text-xl font-bold text-cocoa-900">{title}</h1>
         {(showMapLink || right) && (
           <div className="-mr-1 flex shrink-0 items-center gap-1">
             {showMapLink && (

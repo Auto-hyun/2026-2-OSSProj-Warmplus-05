@@ -1,48 +1,53 @@
 'use client';
 
-import { getMood } from '@/data/moods';
-import { ButtonLink } from '@/components/ui/Button';
-import { quizForDay } from '@/lib/daily';
+import Link from 'next/link';
+import {
+  CloudFogIcon,
+  CloudIcon,
+  CloudLightningIcon,
+  CloudRainIcon,
+  CloudSunIcon,
+  QuestionIcon,
+  SunIcon,
+  WindIcon,
+  type Icon,
+} from '@phosphor-icons/react';
+import { getMood, type MoodId } from '@/data/moods';
 import { todayKey } from '@/lib/date';
 import { useApp } from '@/lib/storage/useApp';
 
-const GLASS = 'flex items-center gap-3 rounded-[20px] border border-white/70 bg-white/60 px-3.5 py-3 shadow-[0_8px_22px_rgba(80,55,20,0.10)] backdrop-blur-md';
+/** 마음 날씨별 아이콘 (Figma 공통 컴포넌트의 선 아이콘) */
+const WEATHER_ICONS: Record<MoodId, Icon> = {
+  joy: SunIcon,
+  flutter: CloudSunIcon,
+  calm: CloudIcon,
+  tired: CloudFogIcon,
+  sad: CloudRainIcon,
+  anxious: WindIcon,
+  angry: CloudLightningIcon,
+};
 
-/** 홈(오목이 집) 위 유리 카드: 오늘의 마음 날씨 테스트 입구 (테스트는 /today). 했으면 오늘 날씨 */
+/** 홈 위 한 줄 카드: 오늘의 마음날씨. 아직이면 테스트(/today) 입구, 했으면 오늘 날씨 + 다시 고르기 */
 export function DailyMoodQuiz() {
   const day = useApp(() => todayKey());
   const today = useApp((s) => s.moods.find((m) => m.day === todayKey()));
-  if (!day) return <div className="h-[68px]" />;
+  if (!day) return <div className="h-[52px]" />;
 
-  if (today) {
-    const mood = getMood(today.mood);
-    return (
-      <section aria-label="오늘의 마음 날씨" className={GLASS}>
-        <span className="text-3xl" aria-hidden>
-          {mood.emoji}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-ink-600">오늘의 마음 날씨</p>
-          <p className="font-bold">
-            {mood.weather} <span className="font-medium text-ink-600">({mood.label})</span>
-          </p>
-        </div>
-        <ButtonLink href="/today" variant="ghost" className="h-11! px-3! text-sm!">
-          다시 하기
-        </ButtonLink>
-      </section>
-    );
-  }
+  const mood = today && getMood(today.mood);
+  const WeatherIcon = today ? WEATHER_ICONS[today.mood] : QuestionIcon;
 
   return (
-    <section aria-label="오늘의 마음 날씨 테스트" className={GLASS}>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs text-ink-600">오늘의 마음 날씨 테스트 · {quizForDay(day).title}</p>
-        <p className="mt-0.5 text-[15px] font-bold">3문항으로 오늘의 구슬 만들기</p>
-      </div>
-      <ButtonLink href="/today" className="h-11! px-4! text-sm!">
-        시작
-      </ButtonLink>
-    </section>
+    <Link
+      href="/today"
+      aria-label={mood ? `오늘의 마음날씨 ${mood.label}, 다시 고르기` : '오늘의 마음날씨 테스트 하기'}
+      className="flex h-[52px] items-center gap-2.5 rounded-full border border-cream-line bg-cream/95 pr-4 pl-3 shadow-[0_6px_18px_rgba(75,46,32,0.12)] transition-transform active:scale-[0.98]"
+    >
+      <WeatherIcon size={30} weight="light" className="shrink-0 text-leaf-600" aria-hidden />
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="block text-[11px] text-taupe-500">오늘의 마음날씨</span>
+        <span className="block truncate text-[15px] font-bold text-cocoa-900">{mood ? mood.label : '3문항으로 구슬 만들기'}</span>
+      </span>
+      <span className="shrink-0 border-l border-cream-line pl-3 text-[13px] whitespace-nowrap text-taupe-500">{mood ? '다시 고르기 ›' : '시작 ›'}</span>
+    </Link>
   );
 }
