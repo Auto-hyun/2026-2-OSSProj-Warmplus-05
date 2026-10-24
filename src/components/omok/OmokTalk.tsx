@@ -16,11 +16,13 @@ type Props = {
   size?: 'lg' | 'sm';
   /** lg일 때 오목이 그림 높이(px) */
   height?: number;
+  /** lg일 때 오목이 그림을 누르면 갈 곳 (예: 대화) */
+  omokHref?: string;
   className?: string;
 };
 
 /** 오목이가 말풍선으로 한 마디 건넨다. 대답 버튼을 붙일 수 있다 */
-export function OmokTalk({ line, replies = [], pose = 'hello', size = 'lg', height = 110, className }: Props) {
+export function OmokTalk({ line, replies = [], pose = 'hello', size = 'lg', height = 110, omokHref, className }: Props) {
   const answers = replies.length > 0 && (
     <div className={cn('flex flex-wrap gap-2', size === 'lg' ? 'mt-4 justify-center' : 'mt-2.5 justify-end')}>
       {replies.map((reply) => {
@@ -71,7 +73,13 @@ export function OmokTalk({ line, replies = [], pose = 'hello', size = 'lg', heig
         {line}
         <span aria-hidden className="absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 border-r border-b border-line bg-surface" />
       </p>
-      <Omok pose={pose} height={height} animated eager decorative={false} className="mt-3" />
+      {omokHref ? (
+        <Link href={omokHref} aria-label="오목이와 대화하기" className="mt-3 rounded-3xl active:scale-95 transition-transform">
+          <Omok pose={pose} height={height} animated eager />
+        </Link>
+      ) : (
+        <Omok pose={pose} height={height} animated eager decorative={false} className="mt-3" />
+      )}
       {answers}
     </div>
   );

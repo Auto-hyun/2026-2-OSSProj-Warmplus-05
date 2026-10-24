@@ -46,5 +46,5 @@ export function TestInvite() {
     ];
   }
 
-  return <OmokTalk line={line} replies={replies} pose="branch" height={120} />;
+  return <OmokTalk line={line} replies={replies} pose="branch" height={120} omokHref="/chat" />;
 }

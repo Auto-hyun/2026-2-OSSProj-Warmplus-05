@@ -1,3 +1,4 @@
+import type { MoodId } from './moods';
 import type { MoodFamily } from './music';
 
 /**
@@ -13,6 +14,8 @@ export type TestResult = {
   description: string;
   /** 이 유형으로 노래를 만들 때 쓰는 음악: 감정 갈래 + 더할 느낌(Suno style) */
   music: { family: MoodFamily; style: string };
+  /** 이 결과를 오늘 기분(유리병 구슬)으로도 기록할 때의 감정. 없으면 기록 안 함 */
+  mood?: MoodId;
 };
 
 export type TestQuestion = {

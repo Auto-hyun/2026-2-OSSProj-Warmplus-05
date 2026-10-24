@@ -1,7 +1,28 @@
+import type { MoodId } from '@/data/moods';
+import type { DayKey } from '@/lib/date';
 import type { Birth } from '@/lib/fortune';
 import type { MusicMode, SongSource } from '@/lib/music/types';
 
 export type TestRecord = { testId: string; resultId: string; at: string };
+
+/** 하루 하나의 기분 기록 (유리병 구슬). 같은 날 다시 기록하면 덮어쓴다 */
+export type MoodEntry = {
+  day: DayKey;
+  mood: MoodId;
+  /** checkin: 오늘 기분 고르기, test: 심리테스트 결과 */
+  source: 'checkin' | 'test';
+  /** 테스트에서 왔으면 테스트 id */
+  testId?: string;
+  /** 한 줄 메모 (선택) */
+  note?: string;
+  at: string;
+};
+
+/** 오목이와 나눈 대화 한 줄 */
+export type ChatMessage = { id: string; role: 'user' | 'omok'; text: string; at: string; crisis?: boolean };
+
+/** 대화가 쌓이면 오목이가 정리해 두는 나에 대한 메모 (요약은 Claude API 연결 후) */
+export type OmokNote = { summary: string; updatedAt: string; messageCount: number };
 
 /** 내가 만든 노래 (작곡 한 번에 2곡씩 생긴다) */
 export type Song = {
@@ -42,6 +63,10 @@ export type AppState = {
   tests: TestRecord[];
   /** 최근 것이 앞 */
   songs: Song[];
+  /** 하루 하나, 최근 날이 앞 */
+  moods: MoodEntry[];
+  /** 오목이 대화: 이 기기에만 저장. messages는 오래된 것이 앞 */
+  chat: { messages: ChatMessage[]; note: OmokNote | null };
   pending: PendingSong[];
   outcome: ComposeOutcome | null;
 };

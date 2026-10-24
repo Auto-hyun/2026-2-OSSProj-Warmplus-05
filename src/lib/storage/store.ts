@@ -1,7 +1,9 @@
+import type { MoodId } from '@/data/moods';
+import { todayKey } from '@/lib/date';
 import type { Birth } from '@/lib/fortune';
 import type { Track } from '@/lib/music/types';
 import { createDefaultState } from './adapters';
-import type { AppState, PendingSong, StorageAdapter } from './types';
+import type { AppState, ChatMessage, MoodEntry, OmokNote, PendingSong, StorageAdapter } from './types';
 
 export const NICKNAME_MAX = 12;
 
@@ -12,7 +14,15 @@ export type AppStore = {
   setNickname(name: string): { ok: boolean };
   setBirth(birth: Birth | null): void;
   meetOmok(): void;
-  saveTestResult(testId: string, resultId: string): void;
+  /** 결과에 감정(mood)이 있으면 오늘 기분으로도 기록한다 */
+  saveTestResult(testId: string, resultId: string, mood?: MoodId): void;
+  /** 오늘(한국 날짜) 기분 기록. 같은 날 다시 하면 덮어쓴다 */
+  recordMood(mood: MoodId, options?: { source?: MoodEntry['source']; testId?: string; note?: string }): void;
+  /** 대화 한 줄 저장 (오래된 것이 앞에 쌓인다) */
+  addChatMessage(message: Omit<ChatMessage, 'id' | 'at'>): ChatMessage;
+  setOmokNote(note: Omit<OmokNote, 'updatedAt'>): void;
+  /** 대화와 오목이 메모를 모두 지운다 */
+  clearChat(): void;
   addPending(pending: Omit<PendingSong, 'startedAt'>): void;
   /** 작곡 완료: 곡들을 내 노래에 넣고 결과로 보여 준다 */
   completePending(taskId: string, tracks: Track[]): void;
@@ -42,6 +52,20 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
 
   const now = () => clock().toISOString();
 
+  const recordMood: AppStore['recordMood'] = (mood, options = {}) => {
+    const day = todayKey(clock());
+    const note = options.note?.trim();
+    const entry: MoodEntry = {
+      day,
+      mood,
+      source: options.source ?? 'checkin',
+      ...(options.testId ? { testId: options.testId } : {}),
+      ...(note ? { note } : {}),
+      at: now(),
+    };
+    set({ ...state, moods: [entry, ...state.moods.filter((m) => m.day !== day)] });
+  };
+
   return {
     getState: () => state,
 
@@ -66,8 +90,26 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
       if (!state.profile.metOmok) set({ ...state, profile: { ...state.profile, metOmok: true } });
     },
 
-    saveTestResult(testId, resultId) {
+    saveTestResult(testId, resultId, mood) {
       set({ ...state, tests: [{ testId, resultId, at: now() }, ...state.tests] });
+      if (mood) recordMood(mood, { source: 'test', testId });
+    },
+
+    recordMood,
+
+    addChatMessage(message) {
+      const at = now();
+      const saved: ChatMessage = { ...message, id: `${at}-${state.chat.messages.length}`, at };
+      set({ ...state, chat: { ...state.chat, messages: [...state.chat.messages, saved] } });
+      return saved;
+    },
+
+    setOmokNote(note) {
+      set({ ...state, chat: { ...state.chat, note: { ...note, updatedAt: now() } } });
+    },
+
+    clearChat() {
+      set({ ...state, chat: { messages: [], note: null } });
     },
 
     addPending(pending) {

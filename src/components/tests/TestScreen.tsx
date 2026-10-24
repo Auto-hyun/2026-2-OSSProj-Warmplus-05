@@ -57,7 +57,7 @@ function Runner({ test }: { test: PsychTest }) {
       return;
     }
     const result = resultFor(test, next);
-    store.saveTestResult(test.id, result.id);
+    store.saveTestResult(test.id, result.id, result.mood);
     router.replace(`/tests/${test.id}?result=${result.id}`);
   }
 

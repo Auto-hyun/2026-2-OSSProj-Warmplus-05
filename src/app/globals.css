@@ -127,3 +127,18 @@ body {
     transition: none !important;
   }
 }
+
+/* 유리병: 오늘 넣은 구슬이 위에서 떨어진다 */
+@keyframes jar-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-90px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
