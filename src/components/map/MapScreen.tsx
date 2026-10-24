@@ -1,12 +1,16 @@
 'use client';
 
-import { EnvelopeIcon, MusicNotesPlusIcon, TrophyIcon, UsersThreeIcon, type Icon } from '@phosphor-icons/react';
+import { EnvelopeIcon, HouseIcon, ClipboardTextIcon, MusicNotesPlusIcon, TrophyIcon, UsersThreeIcon, type Icon } from '@phosphor-icons/react';
 import { AppBar } from '@/components/layout/AppBar';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { toast } from '@/components/ui/Toast';
+import { TESTS } from '@/data/tests';
 
+/** 첫 장소(오목이 집)는 지도 맨 위 가운데, 나머지는 2열로 지그재그 */
 const PLACES: { name: string; href?: string; Icon: Icon }[] = [
+  { name: '오목이 집', href: '/', Icon: HouseIcon },
   { name: '노래 공방', href: '/create', Icon: MusicNotesPlusIcon },
+  { name: '마음 테스트 숲', href: `/tests/${TESTS[0].id}`, Icon: ClipboardTextIcon },
   { name: '이야기 광장', href: '/community', Icon: UsersThreeIcon },
   { name: '온스트리밍 TOP100', Icon: TrophyIcon },
   { name: '온기 우체국', Icon: EnvelopeIcon },
@@ -49,7 +53,7 @@ export function MapScreen() {
               const className = 'h-auto! min-h-36 w-full flex-col rounded-3xl px-2! py-4 text-sm! shadow-[0_4px_12px_rgba(47,43,40,0.06)]';
 
               return (
-                <li key={name} className={index % 2 === 1 ? 'pt-8' : undefined}>
+                <li key={name} className={index === 0 ? 'col-span-2 mx-auto w-1/2' : index % 2 === 0 ? 'pt-8' : undefined}>
                   {href ? (
                     <ButtonLink href={href} variant="secondary" className={className}>
                       {content}

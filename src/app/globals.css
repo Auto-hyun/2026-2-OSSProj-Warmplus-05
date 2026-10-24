@@ -142,3 +142,24 @@ body {
     transform: translateY(0);
   }
 }
+
+/* 오목이 집: 오목이가 둥실, 선반 구슬이 은은하게 빛난다 */
+@keyframes omok-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}

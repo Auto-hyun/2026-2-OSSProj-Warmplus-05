@@ -21,11 +21,20 @@ describe('오목이 대화 맥락', () => {
     });
   });
 
-  it('대화를 지우면 메모도 지워진다', () => {
+  it('대화를 지워도 오목이 메모(기억)는 남는다', () => {
+    const store = createStore(createMemoryAdapter());
+    store.addChatMessage({ role: 'user', text: '안녕' });
+    store.setOmokNote({ summary: '인사를 잘 함', messageCount: 1 });
+    store.clearChat();
+    expect(store.getState().chat.messages).toEqual([]);
+    expect(store.getState().chat.note).toMatchObject({ summary: '인사를 잘 함', messageCount: 0 });
+  });
+
+  it('기억까지 지우기', () => {
     const store = createStore(createMemoryAdapter());
     store.addChatMessage({ role: 'user', text: '안녕' });
     store.setOmokNote({ summary: 'x', messageCount: 1 });
-    store.clearChat();
+    store.forgetOmok();
     expect(store.getState().chat).toEqual({ messages: [], note: null });
   });
 });

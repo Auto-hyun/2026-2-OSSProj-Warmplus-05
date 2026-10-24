@@ -69,6 +69,9 @@ export function DebugScreen() {
           <Button variant="secondary" onClick={() => overwrite({ ...state, moods: sampleMoods(state, 45) })}>
             지난 45일 (병 2개)
           </Button>
+          <Button variant="secondary" onClick={() => overwrite({ ...state, chat: { messages: [], note: null } })}>
+            오목이 기억까지 지우기
+          </Button>
           <Button variant="secondary" onClick={() => overwrite({ ...state, moods: [] })}>
             기분 기록 지우기
           </Button>
