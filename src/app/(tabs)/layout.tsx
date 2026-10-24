@@ -3,7 +3,7 @@ import { MiniPlayer } from '@/components/audio/MiniPlayer';
 import { MobileShell } from '@/components/layout/MobileShell';
 import { TabBar } from '@/components/layout/TabBar';
 
-/** 하단 탭 바가 있는 화면들 (오목이·노래 만들기·커뮤니티·마이페이지) */
+/** 지도·마이페이지 탭 바를 공유하는 홈과 기능 화면들 */
 export default function TabsLayout({ children }: { children: ReactNode }) {
   return (
     <MobileShell>

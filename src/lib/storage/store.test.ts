@@ -26,6 +26,23 @@ describe('store', () => {
     expect(store.getState().tests.map((t) => t.resultId)).toEqual(['c', 'a']);
   });
 
+  it('오늘 기분은 하루 하나, 같은 날 다시 고르면 덮어쓴다', () => {
+    const { store } = setup();
+    store.recordMood('sad');
+    store.recordMood('joy', { note: '  산책했다 ' });
+    expect(store.getState().moods).toEqual([
+      { day: '2026-10-18', mood: 'joy', source: 'checkin', note: '산책했다', at: '2026-10-18T10:00:00.000Z' },
+    ]);
+  });
+
+  it('감정이 있는 테스트 결과는 오늘 기분으로도 기록된다', () => {
+    const { store } = setup();
+    store.saveTestResult('example', 'a');
+    expect(store.getState().moods).toEqual([]);
+    store.saveTestResult('mind-weather', 'rain', 'sad');
+    expect(store.getState().moods[0]).toMatchObject({ mood: 'sad', source: 'test', testId: 'mind-weather' });
+  });
+
   it('작곡 완료: 곡 2개가 내 노래에 들어가고 결과로 보인다', () => {
     const { store } = setup();
     store.addPending({ taskId: 't1', title: '행복의 노래', source: words, mode: 'sample' });
@@ -75,6 +92,7 @@ describe('parseState', () => {
         profile: { nickname: 3, birth: { date: '2026-02-30', time: null }, metOmok: true },
         tests: [{ testId: 'example', resultId: 'a', at: 'x' }, { nope: 1 }],
         songs: [{ id: 'bad' }],
+        moods: [{ day: '2026-10-18', mood: 'calm', source: 'checkin', at: 'x' }, { day: '2026-10-19', mood: 'meh', source: 'checkin', at: 'x' }],
         pending: 'x',
         outcome: { songIds: [1] },
       }),
@@ -84,6 +102,8 @@ describe('parseState', () => {
       profile: { nickname: null, birth: null, metOmok: true },
       tests: [{ testId: 'example', resultId: 'a', at: 'x' }],
       songs: [],
+      moods: [{ day: '2026-10-18', mood: 'calm', source: 'checkin', at: 'x' }],
+      chat: { messages: [], note: null },
       pending: [],
       outcome: null,
     });

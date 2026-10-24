@@ -1,7 +1,8 @@
+import { isMoodId } from '@/data/moods';
 import { isValidDayKey } from '@/lib/date';
 import type { Birth } from '@/lib/fortune';
 import { isSongSource } from '@/lib/music/prompt';
-import type { AppState, ComposeOutcome, PendingSong, Song, StorageAdapter, TestRecord } from './types';
+import type { AppState, ChatMessage, ComposeOutcome, MoodEntry, OmokNote, PendingSong, Song, StorageAdapter, TestRecord } from './types';
 
 export const STORAGE_KEY = 'omok:v1';
 export const BACKUP_KEY = 'omok:v1:backup';
@@ -12,6 +13,8 @@ export function createDefaultState(): AppState {
     profile: { nickname: null, birth: null, metOmok: false },
     tests: [],
     songs: [],
+    moods: [],
+    chat: { messages: [], note: null },
     pending: [],
     outcome: null,
   };
@@ -31,6 +34,35 @@ function parseBirth(v: unknown): Birth | null {
 
 function isTestRecord(v: unknown): v is TestRecord {
   return isObject(v) && isString(v.testId) && isString(v.resultId) && isString(v.at);
+}
+
+function isMoodEntry(v: unknown): v is MoodEntry {
+  return (
+    isObject(v) &&
+    isString(v.day) &&
+    isValidDayKey(v.day) &&
+    isMoodId(v.mood) &&
+    (v.source === 'checkin' || v.source === 'test') &&
+    (v.testId === undefined || isString(v.testId)) &&
+    (v.note === undefined || isString(v.note)) &&
+    isString(v.at)
+  );
+}
+
+function isChatMessage(v: unknown): v is ChatMessage {
+  return (
+    isObject(v) &&
+    isString(v.id) &&
+    (v.role === 'user' || v.role === 'omok') &&
+    isString(v.text) &&
+    isString(v.at) &&
+    (v.crisis === undefined || typeof v.crisis === 'boolean')
+  );
+}
+
+function parseNote(v: unknown): OmokNote | null {
+  if (!isObject(v) || !isString(v.summary) || !isString(v.updatedAt) || typeof v.messageCount !== 'number') return null;
+  return { summary: v.summary, updatedAt: v.updatedAt, messageCount: v.messageCount };
 }
 
 function isMode(v: unknown): v is Song['mode'] {
@@ -84,6 +116,12 @@ export function parseState(raw: string | null): AppState | null {
     },
     tests: listOf(data.tests, isTestRecord),
     songs: listOf(data.songs, isSong),
+    // 유리병 이전에 저장된 기록에는 moods가 없다 → 빈 목록
+    moods: listOf(data.moods, isMoodEntry),
+    chat: {
+      messages: isObject(data.chat) ? listOf(data.chat.messages, isChatMessage) : [],
+      note: isObject(data.chat) ? parseNote(data.chat.note) : null,
+    },
     pending: listOf(data.pending, isPending),
     outcome: parseOutcome(data.outcome),
   };

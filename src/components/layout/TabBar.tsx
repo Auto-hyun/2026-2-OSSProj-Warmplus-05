@@ -2,18 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BirdIcon, MusicNotesPlusIcon, UserIcon, UsersThreeIcon, type Icon } from '@phosphor-icons/react';
+import { MapTrifoldIcon, UserIcon, type Icon } from '@phosphor-icons/react';
 import { cn } from '@/lib/cn';
 
 const TABS: { label: string; href: string; Icon: Icon }[] = [
-  { label: '오목이', href: '/', Icon: BirdIcon },
-  { label: '노래 만들기', href: '/create', Icon: MusicNotesPlusIcon },
-  { label: '커뮤니티', href: '/community', Icon: UsersThreeIcon },
+  { label: '지도로 가기', href: '/map', Icon: MapTrifoldIcon },
   { label: '마이페이지', href: '/me', Icon: UserIcon },
 ];
 
+/** 지도 안 장소들. 여기 있을 때도 "지도로 가기" 탭을 켠다 */
+const MAP_PLACES = ['/create', '/community'];
+
 function isActive(pathname: string, href: string): boolean {
-  if (href === '/') return pathname === '/';
+  if (href === '/map' && MAP_PLACES.includes(pathname)) return true;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

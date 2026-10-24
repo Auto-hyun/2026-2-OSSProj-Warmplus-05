@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { JarShelf } from '@/components/jar/JarShelf';
 import { AppBar } from '@/components/layout/AppBar';
 import { MyPosts } from './MyPosts';
 import { MySongs } from './MySongs';
@@ -14,6 +15,9 @@ export function MeScreen() {
       <AppBar title="마이페이지" />
       <div className="space-y-6 px-4">
         <ProfileCard />
+        <Section title="나의 유리병">
+          <JarShelf />
+        </Section>
         <Section title="나의 심리테스트 유형">
           <MyTests />
         </Section>
