@@ -19,6 +19,7 @@ export function ChatScreen() {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,10 +52,10 @@ export function ChatScreen() {
   }
 
   /** 지난 메모 뒤로 대화가 NOTE_EVERY줄 쌓이면 오목이 메모를 새로 쓴다 (실패해도 대화는 그대로) */
-  async function refreshNote() {
+  async function refreshNote(force = false) {
     const { chat } = getBrowserStore().getState();
     const since = chat.messages.length - (chat.note?.messageCount ?? 0);
-    if (since < NOTE_EVERY) return;
+    if (since <= 0 || (!force && since < NOTE_EVERY)) return;
     try {
       const res = await fetch('/api/chat/note', {
         method: 'POST',
@@ -77,10 +78,15 @@ export function ChatScreen() {
         <Button
           variant="ghost"
           className="h-11! px-3! text-sm! text-danger!"
-          onClick={() => {
-            store.clearChat();
+          onClick={async () => {
             setConfirmClear(false);
+            setClearing(true);
+            // 아직 메모에 안 들어간 대화를 먼저 기억에 정리하고 지운다
+            await refreshNote(true);
+            store.clearChat();
+            setClearing(false);
           }}
+          disabled={clearing}
         >
           정말 지우기
         </Button>
@@ -96,7 +102,7 @@ export function ChatScreen() {
       <AppBar title="오목이와 대화" backHref="/" right={clearButton} />
       <div className="flex-1 space-y-3 px-4 pb-4">
         <p className="rounded-2xl bg-yellow-100 px-4 py-3 text-sm text-ink-600">
-          오목이와 나눈 대화는 이 기기에만 저장돼요. 오목이는 상담사가 아니에요. 많이 힘들 땐 109(자살예방 상담전화)에 전화해 주세요.
+          오목이와 나눈 대화는 이 기기에만 저장돼요. 대화를 지워도 오목이는 정리해 둔 메모로 너를 기억해요. 오목이는 상담사가 아니에요. 많이 힘들 땐 109(자살예방 상담전화)에 전화해 주세요.
         </p>
         {messages?.length === 0 && (
           <div className="flex items-center gap-2 pt-2">

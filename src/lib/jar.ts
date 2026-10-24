@@ -48,6 +48,13 @@ export function fullJars(moods: MoodEntry[]): Jar[] {
     .reverse();
 }
 
+/** 홈 기억 선반에 올릴 구슬: 다 찬 병들의 기록, 최근 것부터 slots개 */
+export function shelfMoods(moods: MoodEntry[], slots: number): MoodEntry[] {
+  return fullJars(moods)
+    .flatMap((j) => [...j.entries].reverse())
+    .slice(0, slots);
+}
+
 export function summarize(jar: Jar): JarSummary {
   const counts = MOODS.map((m) => ({ mood: m.id, count: jar.entries.filter((e) => e.mood === m.id).length }))
     .filter((c) => c.count > 0)

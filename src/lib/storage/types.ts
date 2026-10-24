@@ -9,9 +9,9 @@ export type TestRecord = { testId: string; resultId: string; at: string };
 export type MoodEntry = {
   day: DayKey;
   mood: MoodId;
-  /** checkin: 오늘 기분 고르기, test: 심리테스트 결과 */
-  source: 'checkin' | 'test';
-  /** 테스트에서 왔으면 테스트 id */
+  /** daily: 오늘의 마음 날씨 테스트, checkin: 직접 고르기, test: 심리테스트 결과 */
+  source: 'daily' | 'checkin' | 'test';
+  /** 테스트에서 왔으면 테스트 id (daily는 그날 세트 id) */
   testId?: string;
   /** 한 줄 메모 (선택) */
   note?: string;

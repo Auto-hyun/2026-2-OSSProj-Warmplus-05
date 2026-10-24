@@ -42,7 +42,7 @@ function isMoodEntry(v: unknown): v is MoodEntry {
     isString(v.day) &&
     isValidDayKey(v.day) &&
     isMoodId(v.mood) &&
-    (v.source === 'checkin' || v.source === 'test') &&
+    (v.source === 'daily' || v.source === 'checkin' || v.source === 'test') &&
     (v.testId === undefined || isString(v.testId)) &&
     (v.note === undefined || isString(v.note)) &&
     isString(v.at)

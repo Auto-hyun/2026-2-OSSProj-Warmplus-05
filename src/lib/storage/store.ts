@@ -21,8 +21,10 @@ export type AppStore = {
   /** 대화 한 줄 저장 (오래된 것이 앞에 쌓인다) */
   addChatMessage(message: Omit<ChatMessage, 'id' | 'at'>): ChatMessage;
   setOmokNote(note: Omit<OmokNote, 'updatedAt'>): void;
-  /** 대화와 오목이 메모를 모두 지운다 */
+  /** 화면의 대화만 지운다. 오목이 메모(기억)는 남긴다 */
   clearChat(): void;
+  /** 대화와 오목이 메모를 모두 지운다 (기억까지 초기화) */
+  forgetOmok(): void;
   addPending(pending: Omit<PendingSong, 'startedAt'>): void;
   /** 작곡 완료: 곡들을 내 노래에 넣고 결과로 보여 준다 */
   completePending(taskId: string, tracks: Track[]): void;
@@ -109,6 +111,12 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
     },
 
     clearChat() {
+      // 메모가 정리한 대화 수도 0으로 (새 대화가 다시 쌓이면 이어서 정리)
+      const note = state.chat.note && { ...state.chat.note, messageCount: 0 };
+      set({ ...state, chat: { messages: [], note } });
+    },
+
+    forgetOmok() {
       set({ ...state, chat: { messages: [], note: null } });
     },
 

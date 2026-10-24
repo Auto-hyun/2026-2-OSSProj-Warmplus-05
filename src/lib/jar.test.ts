@@ -1,6 +1,6 @@
 import type { MoodId } from '@/data/moods';
 import type { MoodEntry } from '@/lib/storage/types';
-import { currentJar, fullJars, JAR_SIZE, splitJars, summarize } from './jar';
+import { currentJar, fullJars, JAR_SIZE, shelfMoods, splitJars, summarize } from './jar';
 
 /** 2026-10-01부터 하루씩, 최근 것이 앞 (저장 순서와 같게) */
 function days(moods: MoodId[]): MoodEntry[] {
@@ -28,6 +28,12 @@ describe('유리병', () => {
     const moods = days([...Array(JAR_SIZE).fill('sad'), 'joy', 'calm']);
     expect(currentJar(moods).entries.map((e) => e.mood)).toEqual(['joy', 'calm']);
     expect(fullJars(moods).map((j) => j.number)).toEqual([1]);
+  });
+
+  it('기억 선반: 다 찬 병의 구슬만, 최근 것부터', () => {
+    const moods = days([...Array(JAR_SIZE - 1).fill('sad'), 'angry', 'joy']);
+    expect(shelfMoods(moods, 3).map((e) => e.mood)).toEqual(['angry', 'sad', 'sad']);
+    expect(shelfMoods(days(['joy']), 3)).toEqual([]);
   });
 
   it('요약: 감정별 개수 많은 순, 같으면 MOODS 순서', () => {

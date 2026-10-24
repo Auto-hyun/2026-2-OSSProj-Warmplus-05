@@ -17,7 +17,7 @@ for (let row = 0; SLOTS.length < JAR_SIZE; row++) {
 }
 
 /** 홈 배경에 놓이는 유리병 (간단 UI, 그림은 나중에 교체). 기록한 날마다 감정 색 구슬이 하나씩 쌓인다 */
-export function MoodJar({ className }: { className?: string }) {
+export function MoodJar({ className, caption = true }: { className?: string; caption?: boolean }) {
   const jar = useApp((s) => currentJar(s.moods));
   if (!jar) return null;
   const today = todayKey();
@@ -57,9 +57,11 @@ export function MoodJar({ className }: { className?: string }) {
         <rect x="30" y="16" width="40" height="11" rx="3" fill="url(#jar-glass)" stroke="#c9dde3" strokeWidth="2" />
         <rect x="27" y="6" width="46" height="11" rx="4" fill="#d9b77e" stroke="#b8935a" strokeWidth="1.5" />
       </svg>
-      <figcaption className="mt-1 text-xs font-semibold text-ink-600">
-        {jar.entries.length}/{JAR_SIZE}
-      </figcaption>
+      {caption && (
+        <figcaption className="mt-1 text-xs font-semibold text-ink-600">
+          {jar.entries.length}/{JAR_SIZE}
+        </figcaption>
+      )}
     </figure>
   );
 }
