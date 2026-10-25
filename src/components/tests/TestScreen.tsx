@@ -18,7 +18,7 @@ export function TestScreen({ testId }: { testId: string }) {
 
   return (
     <>
-      <AppBar title={test.title} backHref="/" />
+      <AppBar title={test.title} backHref="/tests" />
       {result ? <ResultView test={test} result={result} /> : <Runner key={resultId ?? 'new'} test={test} />}
     </>
   );

@@ -24,11 +24,19 @@ export type TestQuestion = {
   choices: { label: string; type: string }[];
 };
 
+/** 마음 테스트 숲 목록의 분류: 가볍게 / 나를 돌아보기 */
+export type TestCategory = 'light' | 'reflect';
+
 export type PsychTest = {
   id: string;
   title: string;
   subtitle: string;
   emoji: string;
+  /** 목록 카드: 걸리는 시간(분), 한 줄 꼬리표, 분류, 썸네일 그림 경로 */
+  minutes: number;
+  tag: string;
+  category: TestCategory;
+  thumb: string;
   questions: TestQuestion[];
   /** 점수가 같으면 앞에 있는 유형이 결과가 된다 */
   results: TestResult[];
@@ -39,6 +47,10 @@ const EXAMPLE: PsychTest = {
   title: '나의 마음 소리 유형 (예시)',
   subtitle: '틀만 있는 예시 테스트예요. 문항과 유형을 채워 주세요',
   emoji: '🎧',
+  minutes: 3,
+  tag: '가벼운 테스트',
+  category: 'light',
+  thumb: '/village/screens/test-0.webp',
   questions: [1, 2, 3].map((n) => ({
     text: `예시 질문 ${n} — 여기에 질문을 적어 주세요`,
     choices: [
@@ -85,6 +97,12 @@ const EXAMPLE: PsychTest = {
 };
 
 export const TESTS: readonly PsychTest[] = [EXAMPLE];
+
+/** 시안에는 있지만 문항이 아직 없는 테스트. 목록에 '준비 중'으로만 보인다 */
+export const UPCOMING_TESTS: readonly Pick<PsychTest, 'title' | 'minutes' | 'tag' | 'category' | 'thumb'>[] = [
+  { title: '내 마음에 필요한 휴식', minutes: 2, tag: '일상 돌아보기', category: 'reflect', thumb: '/village/screens/test-1.webp' },
+  { title: '나의 위로 취향', minutes: 2, tag: '취향 찾기', category: 'light', thumb: '/village/screens/test-2.webp' },
+];
 
 export function getTest(id: string): PsychTest | undefined {
   return TESTS.find((t) => t.id === id);
