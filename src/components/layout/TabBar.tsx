@@ -12,10 +12,12 @@ const TABS: { label: string; href: string; Icon: Icon }[] = [
 ];
 
 /** 지도 안 장소들. 여기 있을 때도 "지도" 탭을 켠다 */
-const MAP_PLACES = ['/create', '/community'];
+const MAP_PLACES = ['/create', '/community', '/tests'];
+/** 홈에서 들어가는 화면. 여기 있을 때도 "홈" 탭을 켠다 */
+const HOME_PLACES = ['/fortune'];
 
 function isActive(pathname: string, href: string): boolean {
-  if (href === '/') return pathname === '/';
+  if (href === '/') return pathname === '/' || HOME_PLACES.includes(pathname);
   if (href === '/map' && MAP_PLACES.includes(pathname)) return true;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
