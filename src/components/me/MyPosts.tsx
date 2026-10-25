@@ -32,7 +32,7 @@ export function MyPosts() {
     return (
       <Empty>
         아직 쓴 글이 없어요.{' '}
-        <Link href="/community/write" className="font-semibold text-brown-600 underline underline-offset-2">
+        <Link href="/community/write" className="font-semibold text-leaf-600 underline underline-offset-2">
           글쓰러 가기
         </Link>
       </Empty>
