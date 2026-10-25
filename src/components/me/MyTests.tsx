@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { CaretRightIcon } from '@phosphor-icons/react';
 import { Empty } from '@/components/ui/Empty';
-import { getTest, getTestResult, TESTS } from '@/data/tests';
+import { getTest, getTestResult } from '@/data/tests';
 import { formatDotDate } from '@/lib/date';
 import { useApp } from '@/lib/storage/useApp';
 
@@ -22,7 +22,7 @@ export function MyTests() {
     return (
       <Empty>
         아직 테스트 결과가 없어요.{' '}
-        <Link href={`/tests/${TESTS[0].id}`} className="font-semibold text-brown-600 underline underline-offset-2">
+        <Link href="/tests" className="font-semibold text-leaf-600 underline underline-offset-2">
           테스트 하러 가기
         </Link>
       </Empty>
@@ -35,18 +35,18 @@ export function MyTests() {
         <li key={record.at}>
           <Link
             href={`/tests/${test.id}?result=${result.id}`}
-            className="flex items-center gap-3 rounded-2xl border border-line bg-surface p-3 active:bg-black/5"
+            className="flex items-center gap-3 rounded-[20px] border border-cream-line bg-surface p-3 active:bg-black/5"
           >
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-yellow-100 text-2xl" aria-hidden>
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-cream text-2xl" aria-hidden>
               {result.emoji}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-semibold">{result.name}</span>
-              <span className="block truncate text-xs text-ink-400">
+              <span className="block truncate font-bold text-cocoa-900">{result.name}</span>
+              <span className="block truncate text-xs text-taupe-500">
                 {test.title} · {formatDotDate(record.at)}
               </span>
             </span>
-            <CaretRightIcon size={18} className="text-ink-400" aria-hidden />
+            <CaretRightIcon size={18} className="text-taupe-500" aria-hidden />
           </Link>
         </li>
       ))}

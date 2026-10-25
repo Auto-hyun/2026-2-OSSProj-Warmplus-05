@@ -1,11 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
+import { CaretRightIcon, MusicNotesSimpleIcon } from '@phosphor-icons/react';
 import { AppBar } from '@/components/layout/AppBar';
-import { Omok, type Pose } from '@/components/omok/Omok';
-import { OmokTalk } from '@/components/omok/OmokTalk';
+import { PageHeader } from '@/components/layout/PageHeader';
 import { toast } from '@/components/ui/Toast';
 import { startSong } from '@/lib/music/client';
 import { songRequestFor } from '@/lib/music/prompt';
@@ -18,9 +19,9 @@ import { WordMethod } from './WordMethod';
 
 type Method = 'test' | 'words';
 
-const METHODS: { value: Method; title: string; hint: string; pose: Pose }[] = [
-  { value: 'test', title: '심리테스트로 노래 만들기', hint: '내 유형에 어울리는 곡', pose: 'book' },
-  { value: 'words', title: '감정 단어로 노래 만들기', hint: '지금 마음에 맞는 단어로', pose: 'heart' },
+const METHODS: { value: Method; title: string; hint: [string, string]; art: string }[] = [
+  { value: 'test', title: '심리테스트로 만들기', hint: ['내 마음을 알아보고 어울리는', '노래를 만나요.'], art: '/village/screens/create-test.webp' },
+  { value: 'words', title: '감정 단어로 만들기', hint: ['지금 떠오르는 단어부터', '골라볼까요.'], art: '/village/screens/create-words.webp' },
 ];
 
 /** 탭 2: 심리테스트 유형 또는 감정 단어로 노래 만들기 */
@@ -55,32 +56,56 @@ export function CreateScreen() {
   else if (method === 'test')
     body = <TestMethod picked={{ testId: params.get('test'), resultId: params.get('result') }} busy={busy} onCompose={compose} />;
   else if (method === 'words') body = <WordMethod busy={busy} onCompose={compose} />;
-  else
-    body = (
-      <>
-        <OmokTalk pose="music" line="어떤 방법으로 노래를 만들까?" className="pt-2" />
-        <div className="grid grid-cols-2 gap-3">
-          {METHODS.map((m) => (
-            <Link
-              key={m.value}
-              href={`/create?method=${m.value}`}
-              className="flex flex-col items-center rounded-3xl border border-line bg-surface px-3 pt-5 pb-4 text-center transition-colors active:bg-yellow-100"
-            >
-              <div className="grid h-16 place-items-center">
-                <Omok pose={m.pose} height={60} />
-              </div>
-              <p className="mt-3 leading-snug font-bold">{m.title}</p>
-              <p className="mt-1 text-xs text-ink-600">{m.hint}</p>
-            </Link>
-          ))}
-        </div>
-      </>
-    );
+  else return <CreateLanding />;
 
   return (
     <>
       <AppBar title="노래 만들기" backHref={method && !pending && !outcome ? '/create' : undefined} />
       <div className="space-y-4 px-4">{body}</div>
+    </>
+  );
+}
+
+/** 노래 공방 첫 화면 (Figma): 공방 그림, 소개, 만드는 방법 두 가지 */
+function CreateLanding() {
+  return (
+    <>
+      <PageHeader title="노래 공방" />
+      <Image src="/village/screens/create-hero.webp" alt="" width={882} height={590} preload sizes="480px" className="-mt-1 h-auto w-full" />
+      <div className="px-4 pb-4">
+        <h2 className="mt-2 text-center text-[21px] font-bold text-cocoa-900">내 마음이 노래가 되는 곳</h2>
+        <p className="mt-1.5 text-center text-[13px] leading-relaxed text-taupe-500">
+          지금 이 순간의 마음을 음악으로 표현해 보세요.
+          <br />
+          온기가 당신의 이야기를 노래로 만들어 드려요.
+        </p>
+
+        <div className="mt-5 space-y-3">
+          {METHODS.map((m) => (
+            <Link
+              key={m.value}
+              href={`/create?method=${m.value}`}
+              className="flex h-[118px] items-center gap-1 rounded-[18px] border border-cream-line bg-surface pr-3 pl-5 transition-transform active:scale-[0.98]"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-bold text-cocoa-900">{m.title}</span>
+                <span className="mt-2 block text-[13px] leading-relaxed text-taupe-500">
+                  {m.hint[0]}
+                  <br />
+                  {m.hint[1]}
+                </span>
+              </span>
+              <Image src={m.art} alt="" width={285} height={217} className="h-[96px] w-[126px] shrink-0 mix-blend-multiply" />
+              <CaretRightIcon size={18} className="shrink-0 text-taupe-500" aria-hidden />
+            </Link>
+          ))}
+        </div>
+
+        <p className="mt-5 flex items-center justify-center gap-1.5 text-xs text-cocoa-900">
+          <MusicNotesSimpleIcon size={16} aria-hidden />
+          만든 노래는 내 기록에서 다시 들을 수 있어요.
+        </p>
+      </div>
     </>
   );
 }

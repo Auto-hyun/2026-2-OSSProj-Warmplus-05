@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { CaretRightIcon } from '@phosphor-icons/react';
 import { isValidDayKey, todayKey } from '@/lib/date';
 import type { Birth } from '@/lib/fortune';
 import { useStore } from '@/lib/storage/useApp';
@@ -12,7 +13,7 @@ type Props = {
   submitLabel?: string;
 };
 
-/** 생년월일(필수)과 태어난 시각(모르면 비움). 이 기기에만 저장한다 */
+/** 생년월일(필수)과 태어난 시각(모르면 비움). 이 기기에만 저장한다. 오하아사·마이페이지에서 같이 쓴다 */
 export function BirthForm({ initial, onDone, onCancel, submitLabel = '저장' }: Props) {
   const store = useStore();
   const [date, setDate] = useState(initial?.date ?? '');
@@ -29,48 +30,47 @@ export function BirthForm({ initial, onDone, onCancel, submitLabel = '저장' }:
   }
 
   return (
-    <form onSubmit={submit} className="space-y-2.5">
-      <div className="grid grid-cols-2 gap-2">
-        <label className="block min-w-0">
-          <span className="mb-1 block text-xs font-semibold text-ink-600">생년월일</span>
-          <input
-            type="date"
-            required
-            min="1900-01-01"
-            max={max}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="h-11 w-full min-w-0 rounded-xl border border-line bg-surface px-3 text-[15px]"
-          />
-        </label>
-        <label className="block min-w-0">
-          <span className="mb-1 block text-xs font-semibold text-ink-600">태어난 시각</span>
-          <input
-            type="time"
-            value={unknownTime ? '' : time}
-            disabled={unknownTime}
-            required={!unknownTime}
-            onChange={(e) => setTime(e.target.value)}
-            className="h-11 w-full min-w-0 rounded-xl border border-line bg-surface px-3 text-[15px] disabled:bg-bg disabled:text-ink-400"
-          />
-        </label>
-      </div>
-      <div className="flex items-center gap-2">
-        <label className="flex flex-1 items-center gap-1.5 text-sm text-ink-600">
-          <input type="checkbox" checked={unknownTime} onChange={(e) => setUnknownTime(e.target.checked)} className="size-4 accent-ink-900" />
-          시각을 몰라요
-        </label>
+    <form onSubmit={submit} className="space-y-3">
+      <label className="block">
+        <span className="mb-1.5 block text-sm font-bold text-cocoa-900">생년월일</span>
+        <input
+          type="date"
+          required
+          min="1900-01-01"
+          max={max}
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="h-[42px] w-full min-w-0 rounded-2xl border border-cream-line bg-bg px-4 text-[15px] text-cocoa-900"
+        />
+      </label>
+      <label className="block">
+        <span className="mb-1.5 block text-sm font-bold text-cocoa-900">태어난 시각</span>
+        <input
+          type="time"
+          value={unknownTime ? '' : time}
+          disabled={unknownTime}
+          required={!unknownTime}
+          onChange={(e) => setTime(e.target.value)}
+          className="h-[42px] w-full min-w-0 rounded-2xl border border-cream-line bg-bg px-4 text-[15px] text-cocoa-900 disabled:bg-cream disabled:text-taupe-500"
+        />
+      </label>
+      <label className="flex items-center gap-2 text-sm text-cocoa-900">
+        <input type="checkbox" checked={unknownTime} onChange={(e) => setUnknownTime(e.target.checked)} className="size-5 accent-leaf-600" />
+        태어난 시각을 몰라요
+      </label>
+      <div className="flex gap-2 pt-2">
         {onCancel && (
-          <button type="button" onClick={onCancel} className="h-10 rounded-xl border border-line bg-surface px-4 text-sm font-bold active:bg-black/5">
+          <button type="button" onClick={onCancel} className="h-12 rounded-full border border-cream-line bg-surface px-5 text-[15px] font-bold text-cocoa-900 active:bg-black/5">
             취소
           </button>
         )}
         <button
           type="submit"
           disabled={!valid}
-          className="h-10 rounded-xl bg-yellow-500 px-5 text-sm font-bold text-ink-900 active:brightness-95 disabled:bg-line disabled:text-ink-400"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-leaf-600 text-[16px] font-bold text-white transition-transform active:scale-[0.98] disabled:bg-line disabled:text-ink-400"
         >
           {submitLabel}
+          <CaretRightIcon size={16} aria-hidden />
         </button>
       </div>
     </form>

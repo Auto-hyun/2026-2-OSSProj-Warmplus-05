@@ -6,6 +6,10 @@ const test: PsychTest = {
   title: '',
   subtitle: '',
   emoji: '',
+  minutes: 1,
+  tag: '',
+  category: 'light',
+  thumb: '/village/screens/test-0.webp',
   questions: [0, 1, 2].map(() => ({
     text: '',
     choices: [

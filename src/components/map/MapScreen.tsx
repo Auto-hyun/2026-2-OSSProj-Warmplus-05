@@ -5,7 +5,6 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { BellButton, HomeButton } from '@/components/ui/RoundButton';
 import { toast } from '@/components/ui/Toast';
-import { TESTS } from '@/data/tests';
 
 /** 지도 기준 크기(px, Figma 프레임). 위치는 이 크기에 대한 %로 둬서 화면 폭이 달라도 구도가 유지된다 */
 const W = 390;
@@ -26,7 +25,7 @@ type Place = {
 const PLACES: Place[] = [
   { name: '오목이 집', href: '/', src: 'house', size: [600, 647], at: { x: 147, y: 32, w: 103 }, label: { x: 125, y: 157 } },
   { name: '노래 공방', href: '/create', src: 'workshop', size: [600, 534], at: { x: 10, y: 160, w: 160 }, label: { x: 12, y: 306 } },
-  { name: '마음 테스트 숲', href: `/tests/${TESTS[0].id}`, src: 'test-forest', size: [600, 598], at: { x: 222, y: 185, w: 152 }, label: { x: 220, y: 335 } },
+  { name: '마음 테스트 숲', href: '/tests', src: 'test-forest', size: [600, 598], at: { x: 222, y: 185, w: 152 }, label: { x: 220, y: 335 } },
   { name: '이야기 광장', href: '/community', src: 'plaza', size: [600, 534], at: { x: 7, y: 345, w: 167 }, label: { x: 15, y: 496 } },
   { name: '온스트리밍 TOP100', src: 'stage', size: [600, 523], at: { x: 217, y: 382, w: 155 }, label: { x: 216, y: 527 } },
   { name: '온기 우체국', src: 'post-office', size: [600, 497], at: { x: 15, y: 540, w: 143 }, label: { x: 10, y: 662 } },
