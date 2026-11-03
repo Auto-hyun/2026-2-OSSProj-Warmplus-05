@@ -122,8 +122,8 @@ export function OmokRoom() {
           </svg>
         </Link>
 
-        {/* 말풍선 옆: 오하아사 쪽지 (누르면 팝업) */}
-        <FortuneNote className="absolute right-[4%] w-[64px]" style={{ top: y(660) }} />
+        {/* 홈 버튼 바로 아래: 오하아사 쪽지 (누르면 팝업) */}
+        <FortuneNote className="absolute left-4 w-[64px]" style={{ top: y(10) }} />
       </div>
     </section>
   );
