@@ -171,3 +171,36 @@ body {
     opacity: 1;
   }
 }
+
+/* 오하아사 쪽지: 새 쪽지가 살랑이고, 열면 접힌 쪽지가 펼쳐진다 */
+@keyframes note-wiggle {
+  0%,
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+  90% {
+    transform: rotate(-6deg);
+  }
+  94% {
+    transform: rotate(5deg);
+  }
+  98% {
+    transform: rotate(-3deg);
+  }
+}
+
+@keyframes note-unfold {
+  0% {
+    transform: scale(0.25) rotate(-8deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04) rotate(1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}

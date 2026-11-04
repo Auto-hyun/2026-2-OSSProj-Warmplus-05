@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { CaretRightIcon, MusicNotesSimpleIcon } from '@phosphor-icons/react';
 import { getMood } from '@/data/moods';
+import { FortuneNote } from '@/components/home/FortuneNote';
 import { DailyMoodQuiz } from '@/components/jar/DailyMoodQuiz';
 import { MoodJar } from '@/components/jar/MoodJar';
 import { BellButton, HomeButton } from '@/components/ui/RoundButton';
@@ -27,11 +27,10 @@ const SHELVES = [
 ];
 const SPHERES = SHELVES.flatMap((s) => s.xs.map((cx) => ({ cx, cy: s.cy, r: s.r })));
 
-const CREAM_CARD = 'rounded-[24px] border border-cream-line bg-cream px-4 py-3 shadow-[0_8px_22px_rgba(75,46,32,0.10)] transition-transform active:scale-[0.98]';
-
 /**
- * 홈: 오목이 집 (Figma "온기 · 홈 & 마음 마을"). 방 그림 위에 오늘의 마음날씨 → 선반 → 말풍선과 감정 친구들 → 노래 만들기 · 바로가기.
+ * 홈: 오목이 집 (Figma "온기 · 홈 & 마음 마을"). 방 그림 위에 오늘의 마음날씨 → 선반 → 말풍선과 감정 친구들 → 오하아사 쪽지.
  * 그림 속 유리병에는 지금 병의 구슬, 선반 유리구슬 자리에는 다 찬 병들의 구슬이 채워진다 (로직은 lib/jar 그대로)
+ * 화면 높이에 방 그림을 맞춰 홈은 스크롤되지 않는다 (좁은 화면에서는 바닥 쪽만 잘림)
  */
 export function OmokRoom() {
   const jar = useApp((s) => currentJar(s.moods));
@@ -39,7 +38,7 @@ export function OmokRoom() {
   const chatted = useApp((s) => s.chat.messages.length > 0);
 
   return (
-    <section aria-label="오목이 집" className="relative -mb-44 min-h-dvh bg-[#d99c67] pb-20">
+    <section aria-label="오목이 집" className="relative -mb-44 flex h-dvh flex-col overflow-hidden bg-[#d99c67]">
       {/* 상단 바: 방 그림 윗부분을 뒤집어 이어 붙여, 그림이 위로 이어지는 것처럼 */}
       <header className="relative isolate flex items-center justify-between overflow-hidden px-5 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
         <div aria-hidden className="absolute inset-x-0 bottom-0 -z-10 -scale-y-100" style={{ aspectRatio: `${ROOM_W} / ${ROOM_H}` }}>
@@ -47,10 +46,18 @@ export function OmokRoom() {
         </div>
         <HomeButton />
         <h1 className="sr-only">오목이 집</h1>
+        {/* 가운데: 오늘의 마음날씨 (홈·알림 버튼과 같은 줄) */}
+        <div className="mx-3 w-[272px] max-w-[62%]">
+          <DailyMoodQuiz />
+        </div>
         <BellButton />
       </header>
 
-      <div className="relative isolate w-full" style={{ aspectRatio: `${ROOM_W} / ${ROOM_H}` }}>
+      {/* 방 그림: 남은 높이에 맞춰 축소 (폭이 모자라면 100%로 두고 바닥 쪽이 잘린다) */}
+      <div
+        className="relative isolate mx-auto shrink-0"
+        style={{ aspectRatio: `${ROOM_W} / ${ROOM_H}`, width: `min(100%, calc((100dvh - 118px) * ${ROOM_W / ROOM_H}))` }}
+      >
         <Image src="/village/room.webp" alt="" fill preload sizes="480px" className="-z-10 object-cover" />
 
         {/* 기억 선반: 다 찬 병들의 구슬이 유리구슬 자리를 채운다 */}
@@ -87,11 +94,6 @@ export function OmokRoom() {
           </p>
         )}
 
-        {/* 위: 오늘의 마음날씨 (선반 위 빈 벽) */}
-        <div className="absolute left-1/2 w-[272px] max-w-[76%] -translate-x-1/2" style={{ top: y(14) }}>
-          <DailyMoodQuiz />
-        </div>
-
         {/* 감정 친구들 + 말풍선 */}
         <Link href="/chat" aria-label="감정 친구들과 대화하기" className="absolute left-[15%] w-[58%]" style={{ top: y(735) }}>
           <Image
@@ -120,26 +122,8 @@ export function OmokRoom() {
           </svg>
         </Link>
 
-        {/* 아래: 노래 만들기, 바로가기 */}
-        <Link
-          href="/create"
-          className="absolute left-1/2 inline-flex h-[54px] -translate-x-1/2 items-center gap-3 rounded-full bg-leaf-600 px-6 text-[18px] font-bold whitespace-nowrap text-white shadow-[0_8px_20px_rgba(60,85,55,0.28)] transition-transform active:scale-[0.98]"
-          style={{ top: y(1132) }}
-        >
-          <MusicNotesSimpleIcon size={24} aria-hidden />
-          내 마음으로 노래 만들기
-          <CaretRightIcon size={18} aria-hidden />
-        </Link>
-        <div className="absolute inset-x-[6%] grid grid-cols-2 gap-3" style={{ top: y(1300) }}>
-          <Link href="/fortune" className={CREAM_CARD}>
-            <span className="block text-[15px] font-bold whitespace-nowrap text-cocoa-900">오늘의 오하아사 ›</span>
-            <span className="mt-0.5 block text-xs text-taupe-500">나에게 온 작은 행운</span>
-          </Link>
-          <Link href="/map" className={CREAM_CARD}>
-            <span className="block text-[15px] font-bold whitespace-nowrap text-cocoa-900">마음 마을로 ›</span>
-            <span className="mt-0.5 block text-xs text-taupe-500">함께 듣고, 이야기해요</span>
-          </Link>
-        </div>
+        {/* 홈 버튼 바로 아래: 오하아사 쪽지 (누르면 팝업) */}
+        <FortuneNote className="absolute left-4 w-[64px]" style={{ top: y(10) }} />
       </div>
     </section>
   );
