@@ -1,7 +1,7 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { Omok } from '@/components/omok/Omok';
 import { particle } from '@/lib/josa';
 import type { PendingSong } from '@/lib/storage/types';
 
@@ -26,27 +26,34 @@ export function Composing({ pending }: { pending: PendingSong }) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center rounded-3xl border border-line bg-surface px-5 pt-10 pb-8 text-center">
+    <div className="flex flex-col items-center rounded-[24px] border border-cream-line bg-surface px-5 pt-6 pb-7 text-center">
       <div className="relative">
         {NOTES.map((n) => (
           <span
             key={n.char}
             aria-hidden
-            className="absolute top-2 animate-[omok-note_2.8s_ease-out_infinite] text-2xl text-brown-600 opacity-0"
+            className="absolute top-2 animate-[omok-note_2.8s_ease-out_infinite] text-2xl text-leaf-600 opacity-0"
             style={{ left: n.left, animationDelay: n.delay, ['--drift' as string]: n.drift }}
           >
             {n.char}
           </span>
         ))}
-        <Omok pose="music" height={130} className="origin-bottom animate-[omok-sway_1.6s_ease-in-out_infinite]" />
+        <Image
+          src="/village/composer/guitar.webp"
+          alt=""
+          width={170}
+          height={170}
+          preload
+          className="size-[136px] origin-bottom motion-safe:animate-[omok-sway_1.6s_ease-in-out_infinite]"
+        />
       </div>
-      <p role="status" className="mt-6 text-lg font-bold">
+      <p role="status" className="mt-3 text-base font-bold text-cocoa-900">
         ‘{pending.title}’{particle(pending.title, '을/를')} 만들고 있어요
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-ink-600">
+      <p className="mt-2 text-[13px] leading-relaxed text-taupe-500">
         {pending.mode === 'suno' ? '1~3분쯤 걸려요. 다른 탭에 다녀와도 돼요.' : '잠깐이면 돼요.'}
       </p>
-      <p className="mt-4 font-mono text-sm text-ink-400 tabular-nums">{elapsedLabel(now - new Date(pending.startedAt).getTime())}</p>
+      <p className="mt-4 text-[13px] text-taupe-500 tabular-nums">{elapsedLabel(now - new Date(pending.startedAt).getTime())}</p>
     </div>
   );
 }

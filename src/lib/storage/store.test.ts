@@ -60,6 +60,40 @@ describe('store', () => {
     expect(store.getState().songs).toHaveLength(2);
   });
 
+  it('방금 만든 곡은 저장 전이고, 저장하지 않은 곡은 결과를 닫으면 사라진다', () => {
+    const { store } = setup();
+    store.addPending({ taskId: 't1', title: '행복의 노래', source: words, mode: 'sample' });
+    store.completePending('t1', [track('a'), track('b')]);
+    expect(store.getState().songs.map((s) => s.saved)).toEqual([false, false]);
+
+    store.setSongSaved('b', true);
+    store.dismissOutcome();
+    expect(store.getState().songs.map((s) => s.id)).toEqual(['b']);
+    expect(store.getState().songs[0].saved).toBe(true);
+  });
+
+  it('새 노래를 만들면 이전 결과의 저장 안 한 곡은 사라진다', () => {
+    const { store } = setup();
+    store.addPending({ taskId: 't1', title: '행복의 노래', source: words, mode: 'sample' });
+    store.completePending('t1', [track('a'), track('b')]);
+    store.setSongSaved('a', true);
+    store.addPending({ taskId: 't2', title: '슬픔의 노래', source: words, mode: 'sample' });
+    expect(store.getState().songs.map((s) => s.id)).toEqual(['a']);
+  });
+
+  it('내 노래 이름은 1~30자로 바꿀 수 있다', () => {
+    const { store } = setup();
+    store.addPending({ taskId: 't1', title: '행복의 노래', source: words, mode: 'sample' });
+    store.completePending('t1', [track('a'), track('b')]);
+
+    expect(store.renameSong('a', '  봄날의 산책  ')).toEqual({ ok: true });
+    expect(store.getState().songs.map((s) => s.title)).toEqual(['봄날의 산책', '행복의 노래 #2']);
+    expect(store.renameSong('a', ' ')).toEqual({ ok: false });
+    expect(store.renameSong('a', '가'.repeat(31))).toEqual({ ok: false });
+    expect(store.renameSong('없는곡', '이름')).toEqual({ ok: false });
+    expect(store.getState().songs[0].title).toBe('봄날의 산책');
+  });
+
   it('작곡 실패는 이유를 남기고, 확인하면 지운다', () => {
     const { store } = setup();
     store.addPending({ taskId: 't1', title: 'x', source: words, mode: 'suno' });
@@ -83,6 +117,12 @@ describe('parseState', () => {
   it('망가진 문자열·다른 버전은 null', () => {
     expect(parseState('{')).toBeNull();
     expect(parseState(JSON.stringify({ version: 2, profile: {} }))).toBeNull();
+  });
+
+  it('저장 버튼 이전에 만든 곡은 저장된 곡으로 읽는다', () => {
+    const song = { id: 'a', title: '옛 노래', audioUrl: '/samples/a.mp3', duration: null, temporary: false, mode: 'sample', source: words, createdAt: '2026-10-18T10:00:00.000Z' };
+    const state = parseState(JSON.stringify({ version: 1, profile: {}, songs: [song, { ...song, id: 'b', saved: false }] }));
+    expect(state?.songs.map((s) => s.saved)).toEqual([true, false]);
   });
 
   it('잘못된 항목만 버린다', () => {

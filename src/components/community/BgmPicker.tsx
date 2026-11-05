@@ -28,10 +28,10 @@ export function BgmPicker({ songs, value, onChange }: Props) {
             key={option.id ?? 'none'}
             className={cn(
               'flex items-center gap-3 rounded-2xl border p-3 transition-colors',
-              checked ? 'border-ink-900 bg-yellow-100' : 'border-line bg-surface',
+              checked ? 'border-leaf-600 bg-leaf-600/10' : 'border-cream-line bg-surface',
             )}
           >
-            {option.song && <PlayButton track={{ title: option.song.title, url: option.song.audioUrl }} size="sm" />}
+            {option.song && <PlayButton track={{ title: option.song.title, url: option.song.audioUrl }} size="sm" tone="soft" />}
             <button
               type="button"
               role="radio"
@@ -40,14 +40,14 @@ export function BgmPicker({ songs, value, onChange }: Props) {
               className="flex min-w-0 flex-1 items-center gap-3 text-left"
             >
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-semibold">{option.title}</span>
-                {option.meta && <span className="block truncate text-xs text-ink-400">{option.meta}</span>}
+                <span className="block truncate font-semibold text-cocoa-900">{option.title}</span>
+                {option.meta && <span className="block truncate text-xs text-taupe-500">{option.meta}</span>}
               </span>
               <span
                 aria-hidden
-                className={cn('grid size-5 shrink-0 place-items-center rounded-full border-2', checked ? 'border-ink-900' : 'border-ink-400')}
+                className={cn('grid size-5 shrink-0 place-items-center rounded-full border-2', checked ? 'border-leaf-600' : 'border-taupe-500/60')}
               >
-                {checked && <span className="size-2.5 rounded-full bg-ink-900" />}
+                {checked && <span className="size-2.5 rounded-full bg-leaf-600" />}
               </span>
             </button>
           </div>
