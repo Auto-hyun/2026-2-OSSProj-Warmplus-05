@@ -35,6 +35,8 @@ export type Song = {
   mode: MusicMode;
   source: SongSource;
   createdAt: string;
+  /** 마이페이지에 저장한 곡. 작곡 직후엔 false이고, 저장하지 않은 곡은 결과를 닫으면 사라진다 */
+  saved: boolean;
 };
 
 /** 작곡을 맡겨 두고 기다리는 중 */

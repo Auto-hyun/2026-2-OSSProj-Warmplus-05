@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { CaretRightIcon, HeartIcon, PencilSimpleIcon, PlantIcon } from '@phosphor-icons/react';
 import { useAudio } from '@/components/audio/AudioProvider';
@@ -11,6 +12,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { listPosts, PAGE_SIZE, type Post } from '@/lib/community';
 import { cn } from '@/lib/cn';
 import { useSupabase } from '@/lib/supabase/useSupabase';
+import { FreeBoard } from './FreeBoard';
 import { NeedsSupabase } from './NeedsSupabase';
 import { PostCard } from './PostCard';
 
@@ -30,8 +32,20 @@ function matches(post: Post, filter: Filter): boolean {
   return true;
 }
 
-/** 이야기 광장 (Figma): 다른 사람들의 오늘 이야기 */
+/** 게시판 탭: 이야기 광장(Supabase, 노래 BGM 글) / 자유게시판(샘플, 이 기기에 저장). 주소 ?board=free */
+const BOARDS = [
+  { value: 'plaza', label: '이야기 광장', href: '/community' },
+  { value: 'free', label: '자유게시판', href: '/community?board=free' },
+] as const;
+
+const INTRO = {
+  plaza: { title: '이야기 광장', lead: '오늘의 마음을 나눠요.', lines: ['작은 이야기들도 괜찮아요.', '함께 나누면, 더 따뜻해져요.'] },
+  free: { title: '자유게시판', lead: '무엇이든 편하게 적어요.', lines: ['고민도, 수다도 좋아요.', '서로 다정하게 나눠요.'] },
+};
+
+/** 커뮤니티 (Figma): 이야기 광장과 자유게시판 */
 export function CommunityScreen() {
+  const board = useSearchParams().get('board') === 'free' ? 'free' : 'plaza';
   const supabase = useSupabase();
   const { current } = useAudio();
   const [feed, setFeed] = useState<Feed>({ status: 'loading' });
@@ -132,20 +146,40 @@ export function CommunityScreen() {
         <section className="relative -mx-4 h-[150px] px-5 pt-2">
           <div className="relative z-10 max-w-[58%]">
             <h2 className="flex items-center gap-1.5 text-[25px] font-bold text-cocoa-900">
-              이야기 광장
+              {INTRO[board].title}
               <PlantIcon size={24} weight="duotone" className="text-leaf-600" aria-hidden />
             </h2>
-            <p className="mt-1.5 text-[15px] font-bold text-cocoa-900">오늘의 마음을 나눠요.</p>
+            <p className="mt-1.5 text-[15px] font-bold text-cocoa-900">{INTRO[board].lead}</p>
             <p className="mt-1.5 text-xs leading-relaxed text-taupe-500">
-              작은 이야기들도 괜찮아요.
+              {INTRO[board].lines[0]}
               <br />
-              함께 나누면, 더 따뜻해져요.
+              {INTRO[board].lines[1]}
             </p>
           </div>
           <Image src="/village/screens/plaza-hero.webp" alt="" width={523} height={342} preload sizes="240px" className="absolute -top-3 right-0 h-auto w-[232px] [mask-image:linear-gradient(to_right,transparent,#000_18%),linear-gradient(to_top,transparent,#000_18%)] [mask-composite:intersect]" />
         </section>
 
-        {supabase && (
+        <nav aria-label="게시판" className="flex rounded-[17px] border border-cream-line bg-bg p-1">
+          {BOARDS.map((b) => (
+            <Link
+              key={b.value}
+              href={b.href}
+              replace
+              scroll={false}
+              aria-current={board === b.value ? 'page' : undefined}
+              className={cn(
+                'inline-flex h-10 flex-1 items-center justify-center rounded-[14px] text-[15px] font-bold transition-colors',
+                board === b.value ? 'bg-leaf-600 text-white' : 'text-taupe-500 active:bg-black/5',
+              )}
+            >
+              {b.label}
+            </Link>
+          ))}
+        </nav>
+
+        {board === 'free' && <FreeBoard />}
+
+        {board === 'plaza' && supabase && (
           <Link
             href="/community/write"
             className="flex items-center gap-4 rounded-[24px] border border-cream-line bg-surface px-5 py-4 shadow-[0_6px_18px_rgba(75,46,32,0.05)] transition-transform active:scale-[0.98]"
@@ -159,7 +193,7 @@ export function CommunityScreen() {
           </Link>
         )}
 
-        {supabase !== null && (
+        {board === 'plaza' && supabase !== null && (
           <div role="group" aria-label="글 분류" className="flex gap-2">
             {FILTERS.map((f) => (
               <button
@@ -178,11 +212,11 @@ export function CommunityScreen() {
           </div>
         )}
 
-        {body}
+        {board === 'plaza' && body}
       </div>
 
       {/* 떠 있는 글쓰기 버튼 (재생 바가 뜨면 그 위로) */}
-      {supabase && (
+      {(board === 'free' || supabase) && (
         <div
           className={cn(
             'pointer-events-none fixed inset-x-0 z-30 mx-auto flex max-w-[480px] justify-end px-4',
@@ -190,7 +224,7 @@ export function CommunityScreen() {
           )}
         >
           <Link
-            href="/community/write"
+            href={board === 'free' ? '/community/free/write' : '/community/write'}
             className="pointer-events-auto inline-flex h-12 items-center gap-2 rounded-full bg-leaf-600 px-5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(60,85,55,0.3)] transition-transform active:scale-95"
           >
             <PencilSimpleIcon size={18} aria-hidden />

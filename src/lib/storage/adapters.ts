@@ -115,7 +115,8 @@ export function parseState(raw: string | null): AppState | null {
       metOmok: profile.metOmok === true,
     },
     tests: listOf(data.tests, isTestRecord),
-    songs: listOf(data.songs, isSong),
+    // 저장 버튼 이전에 만든 곡에는 saved가 없다 → 저장된 곡으로 본다
+    songs: listOf(data.songs, isSong).map((s) => ({ ...s, saved: (s as { saved?: unknown }).saved !== false })),
     // 유리병 이전에 저장된 기록에는 moods가 없다 → 빈 목록
     moods: listOf(data.moods, isMoodEntry),
     chat: {
