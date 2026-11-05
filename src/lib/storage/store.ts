@@ -6,6 +6,7 @@ import { createDefaultState } from './adapters';
 import type { AppState, ChatMessage, MoodEntry, OmokNote, PendingSong, StorageAdapter } from './types';
 
 export const NICKNAME_MAX = 12;
+export const SONG_TITLE_MAX = 30;
 
 export type AppStore = {
   getState(): AppState;
@@ -31,11 +32,21 @@ export type AppStore = {
   failPending(taskId: string, reason: string): void;
   dismissOutcome(): void;
   removeSong(id: string): void;
+  /** 내 노래 이름 바꾸기 (1~30자, 앞뒤 공백 제거) */
+  renameSong(id: string, title: string): { ok: boolean };
+  /** 마이페이지에 저장하기 / 저장 취소 */
+  setSongSaved(id: string, saved: boolean): void;
 };
 
 export function createStore(adapter: StorageAdapter, clock: () => Date = () => new Date()): AppStore {
   let state = adapter.load() ?? createDefaultState();
   const listeners = new Set<() => void>();
+
+  /** 지금 결과 화면의 곡 중 저장하지 않은 곡을 버린 목록 (결과를 닫거나 새로 만들 때) */
+  function dropUnsavedOutcome(s: AppState): AppState['songs'] {
+    const ids = s.outcome && 'songIds' in s.outcome ? s.outcome.songIds : [];
+    return s.songs.filter((song) => song.saved || !ids.includes(song.id));
+  }
 
   function set(next: AppState) {
     state = next;
@@ -121,7 +132,7 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
     },
 
     addPending(pending) {
-      set({ ...state, pending: [...state.pending, { ...pending, startedAt: now() }], outcome: null });
+      set({ ...state, songs: dropUnsavedOutcome(state), pending: [...state.pending, { ...pending, startedAt: now() }], outcome: null });
     },
 
     completePending(taskId, tracks) {
@@ -138,11 +149,14 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
         mode: pending.mode,
         source: pending.source,
         createdAt,
+        saved: false,
       }));
       const fresh = songs.filter((s) => !state.songs.some((old) => old.id === s.id));
+      // 같은 작업 완료가 다시 오면(다른 탭) 결과 화면은 그대로 둔다
+      const kept = fresh.length === 0 ? state.songs : dropUnsavedOutcome(state);
       set({
         ...state,
-        songs: [...fresh, ...state.songs],
+        songs: [...fresh, ...kept],
         pending: state.pending.filter((p) => p.taskId !== taskId),
         outcome: { songIds: songs.map((s) => s.id) },
       });
@@ -154,11 +168,23 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
     },
 
     dismissOutcome() {
-      set({ ...state, outcome: null });
+      set({ ...state, songs: dropUnsavedOutcome(state), outcome: null });
     },
 
     removeSong(id) {
       set({ ...state, songs: state.songs.filter((s) => s.id !== id) });
+    },
+
+    renameSong(id, title) {
+      const trimmed = title.trim();
+      const length = Array.from(trimmed).length;
+      if (length < 1 || length > SONG_TITLE_MAX || !state.songs.some((s) => s.id === id)) return { ok: false };
+      set({ ...state, songs: state.songs.map((s) => (s.id === id ? { ...s, title: trimmed } : s)) });
+      return { ok: true };
+    },
+
+    setSongSaved(id, saved) {
+      set({ ...state, songs: state.songs.map((s) => (s.id === id ? { ...s, saved } : s)) });
     },
   };
 }
