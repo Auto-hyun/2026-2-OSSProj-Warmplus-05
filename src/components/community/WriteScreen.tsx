@@ -9,6 +9,7 @@ import { OmokTalk } from '@/components/omok/OmokTalk';
 import { toast } from '@/components/ui/Toast';
 import { TOPICS } from '@/data/topics';
 import { CONTENT_MAX, createPost } from '@/lib/community';
+import { pickableSongs } from '@/lib/songs';
 import { NICKNAME_MAX } from '@/lib/storage/store';
 import { useApp, useStore } from '@/lib/storage/useApp';
 import { useSupabase } from '@/lib/supabase/useSupabase';
@@ -37,7 +38,7 @@ export function WriteScreen() {
   const [name, setName] = useState('');
   const [editingName, setEditingName] = useState(false);
   const [bgmId, setBgmId] = useState<string | null>(params.get('song'));
-  const songs = useApp((s) => s.songs);
+  const songs = useApp(pickableSongs);
   // 지운 노래 등 없는 곡이면 배경음악 없이
   const bgm = songs?.find((s) => s.id === bgmId) ?? null;
   const [sending, setSending] = useState(false);
