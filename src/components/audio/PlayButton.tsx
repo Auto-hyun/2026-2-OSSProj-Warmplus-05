@@ -7,14 +7,15 @@ import { useAudio, type PlayableTrack } from './AudioProvider';
 type Props = {
   track: PlayableTrack;
   size?: 'sm' | 'md';
-  /** yellow: 기본 노란 버튼, leaf: 마을 화면 초록 버튼, line: 테두리만 있는 버튼 */
-  tone?: 'yellow' | 'leaf' | 'line';
+  /** yellow: 기본 노란 버튼, leaf: 마을 화면 초록 버튼, soft: 연한 초록 바탕, line: 테두리만 있는 버튼 */
+  tone?: 'yellow' | 'leaf' | 'soft' | 'line';
   className?: string;
 };
 
 const TONES = {
   yellow: 'bg-yellow-500 text-ink-900 active:brightness-95',
   leaf: 'bg-leaf-600 text-white active:brightness-95',
+  soft: 'bg-leaf-600/15 text-leaf-600 active:bg-leaf-600/25',
   line: 'border border-cream-line bg-surface text-cocoa-900 active:bg-black/5',
 };
 
