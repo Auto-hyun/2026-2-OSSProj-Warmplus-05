@@ -48,7 +48,7 @@ export async function listPosts(supabase: SupabaseClient, before?: string): Prom
   return (data as PostRow[]).map(toPost);
 }
 
-/** 이 기기의 익명 계정으로 쓴 글. 계정이 없으면 빈 목록 */
+/** 내 계정(익명 또는 카카오)으로 쓴 글. 계정이 없으면 빈 목록 */
 export async function listMyPosts(supabase: SupabaseClient): Promise<Post[]> {
   const userId = await currentUserId(supabase);
   if (!userId) return [];
