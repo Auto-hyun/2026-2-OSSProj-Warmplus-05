@@ -37,7 +37,7 @@ describe('샘플 곡 모드 (Suno 설정이 없을 때)', () => {
   it('몇 초 동안은 작곡 중, 그 뒤엔 같은 갈래의 샘플 곡 2개', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-10-18T10:00:00Z'));
-    const { taskId } = await (await post({ source: { kind: 'test', testId: 'example', resultId: 'd' } })).json();
+    const { taskId } = await (await post({ source: { kind: 'test', testId: 'mind-sound', resultId: 'a' } })).json();
 
     expect(await (await get(taskId)).json()).toEqual({ state: 'composing' });
 
