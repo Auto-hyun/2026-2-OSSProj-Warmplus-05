@@ -1,7 +1,7 @@
 # 오목이 대화 (기능 뼈대)
 
 홈에서 오목이 그림을 누르면 `/chat`으로 가서 오목이와 대화한다. 대화는 이 기기에만 저장된다.
-`src/.env.local`에 `ANTHROPIC_API_KEY`가 있으면 Claude로 답하고(모델 기본 claude-opus-5, `OMOK_MODEL`로 변경), 없으면 정해진 말로 답한다(offline).
+`src/.env.local`에 `ANTHROPIC_API_KEY`가 있으면 Claude로 답하고(모델 기본 claude-sonnet-5-5, `OMOK_MODEL`로 변경), 없으면 정해진 말로 답한다(offline).
 
 ## 구조
 | 무엇 | 어디 | 설명 |

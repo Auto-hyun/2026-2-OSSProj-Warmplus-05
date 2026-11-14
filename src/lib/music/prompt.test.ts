@@ -49,24 +49,24 @@ describe('songRequestFor: 감정 단어', () => {
 
 describe('songRequestFor: 심리테스트 유형', () => {
   it('유형의 음악으로 만든다', () => {
-    const req = songRequestFor({ kind: 'test', testId: 'example', resultId: 'b' })!;
-    expect(req.title).toBe('예시 유형 B의 노래');
+    const req = songRequestFor({ kind: 'test', testId: 'mind-sound', resultId: 'c' })!;
+    expect(req.title).toBe('조용한 빗소리의 노래');
     expect(req.family).toBe('sad');
-    expect(req.style).toContain('rainy window');
+    expect(req.style).toContain('rain on window');
   });
 
   it('모르는 테스트나 유형이면 null', () => {
     expect(songRequestFor({ kind: 'test', testId: 'none', resultId: 'a' })).toBeNull();
-    expect(songRequestFor({ kind: 'test', testId: 'example', resultId: 'z' })).toBeNull();
+    expect(songRequestFor({ kind: 'test', testId: 'mind-sound', resultId: 'z' })).toBeNull();
   });
 });
 
 describe('isSongSource', () => {
   it.each([
     [{ kind: 'words', words: ['happy'] }, true],
-    [{ kind: 'test', testId: 'example', resultId: 'a' }, true],
+    [{ kind: 'test', testId: 'mind-sound', resultId: 'a' }, true],
     [{ kind: 'words', words: [1] }, false],
-    [{ kind: 'test', testId: 'example' }, false],
+    [{ kind: 'test', testId: 'mind-sound' }, false],
     [{ kind: 'free', prompt: 'anything' }, false],
     [null, false],
   ])('%j → %s', (value, expected) => {

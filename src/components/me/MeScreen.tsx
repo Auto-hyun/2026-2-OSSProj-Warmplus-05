@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ClipboardTextIcon, MusicNotesSimpleIcon, PencilSimpleIcon, type Icon } from '@phosphor-icons/react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { cn } from '@/lib/cn';
+import { AccountCard } from './AccountCard';
 import { JarBanner } from './JarBanner';
 import { MyPosts } from './MyPosts';
 import { MySongs } from './MySongs';
@@ -18,7 +19,7 @@ const TABS: { value: Tab; label: string; Icon: Icon }[] = [
   { value: 'posts', label: '내가 쓴 글', Icon: PencilSimpleIcon },
 ];
 
-/** 마이페이지 (Figma): 프로필, 이번 마음 병, 내 노래 · 테스트 · 내가 쓴 글 */
+/** 마이페이지 (Figma): 프로필, 카카오 계정, 이번 마음 병, 내 노래 · 테스트 · 내가 쓴 글 */
 export function MeScreen() {
   const [tab, setTab] = useState<Tab>('songs');
 
@@ -27,6 +28,7 @@ export function MeScreen() {
       <PageHeader title="마이페이지" home={false} />
       <div className="space-y-3 px-3.5">
         <ProfileCard />
+        <AccountCard />
         <JarBanner />
 
         <div role="tablist" aria-label="내 기록" className="flex rounded-[17px] border border-cream-line bg-bg p-1">

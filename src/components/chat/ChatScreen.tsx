@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { AppBar } from '@/components/layout/AppBar';
 import { Omok } from '@/components/omok/Omok';
 import { Button } from '@/components/ui/Button';
@@ -20,11 +20,11 @@ export function ChatScreen() {
   const [sending, setSending] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
-  const bottom = useRef<HTMLDivElement>(null);
 
+  // 하단 입력창이 sticky로 떠 있어서 scrollIntoView로는 마지막 말풍선이 입력창 뒤에 숨는다 — 문서 끝까지 내린다
   useEffect(() => {
-    bottom.current?.scrollIntoView({ block: 'end' });
-  }, [messages?.length]);
+    window.scrollTo({ top: document.documentElement.scrollHeight });
+  }, [messages?.length, sending]);
 
   async function send(e: FormEvent) {
     e.preventDefault();
@@ -126,7 +126,6 @@ export function ChatScreen() {
           ))}
         </ul>
         {sending && <p className="text-sm text-ink-400">오목이가 생각 중…</p>}
-        <div ref={bottom} />
       </div>
       <form onSubmit={send} className="sticky bottom-0 flex gap-2 border-t border-line bg-bg px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+12px)]">
         <label htmlFor="chat-input" className="sr-only">

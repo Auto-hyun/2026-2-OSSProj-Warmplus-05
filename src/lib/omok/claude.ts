@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { ChatContext } from './context';
 
 /** 서버에서만 쓴다 (API 키). 모델은 .env.local의 OMOK_MODEL로 바꿀 수 있다 */
-export const OMOK_MODEL = process.env.OMOK_MODEL || 'claude-opus-5';
+export const OMOK_MODEL = process.env.OMOK_MODEL || 'claude-sonnet-5-5';
 
 export function hasClaudeKey(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);

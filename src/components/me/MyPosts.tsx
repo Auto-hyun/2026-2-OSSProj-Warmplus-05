@@ -9,7 +9,7 @@ import { Empty } from '@/components/ui/Empty';
 import { deletePost, listMyPosts, type Post } from '@/lib/community';
 import { useSupabase } from '@/lib/supabase/useSupabase';
 
-/** 이 기기의 익명 계정으로 쓴 글. 지울 수 있다 */
+/** 내 계정(이 기기의 익명 계정, 또는 카카오로 로그인한 계정)으로 쓴 글. 지울 수 있다 */
 export function MyPosts() {
   const supabase = useSupabase();
   const [posts, setPosts] = useState<Post[] | 'error' | null>(null);
