@@ -26,9 +26,9 @@ describe('샘플 곡 목록 (data/samples.ts)', () => {
     for (const song of SAMPLE_SONGS) expect(getWord(song.word), song.file).toBeDefined();
   });
 
-  it('감정마다 2곡 이상 있다 (작곡 한 번에 서로 다른 2곡)', () => {
+  it('감정마다 16곡씩 있다 (같은 감정을 고른 사람끼리 덜 겹치게)', () => {
     for (const mood of ['joy', 'flutter', 'calm', 'tired', 'sad', 'anxious', 'angry'] as const) {
-      expect(SAMPLE_SONGS.filter((s) => getWord(s.word)!.mood === mood).length, mood).toBeGreaterThanOrEqual(2);
+      expect(SAMPLE_SONGS.filter((s) => getWord(s.word)!.mood === mood).length, mood).toBe(16);
     }
   });
 });
