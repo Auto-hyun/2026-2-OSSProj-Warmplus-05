@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 export default function FortunePage() {
   return (
     <>
-      <PageHeader title="오늘의 오하아사" />
+      <PageHeader title="오늘의 오하아사" back="/" />
       <div className="pb-4">
         <Image src="/village/screens/fortune-hero.webp" alt="" width={882} height={355} preload sizes="480px" className="h-auto w-full" />
         <div className="px-4">

@@ -1,22 +1,56 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { getMood, type MoodId } from '@/data/moods';
 import { AppBar } from '@/components/layout/AppBar';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { toast } from '@/components/ui/Toast';
 import { dailyResult, quizForDay } from '@/lib/daily';
 import { todayKey } from '@/lib/date';
+import { startSong } from '@/lib/music/client';
+import { songRequestFor } from '@/lib/music/prompt';
 import { useApp, useStore } from '@/lib/storage/useApp';
+
+/** 결과 감정 → 노래 공방 감정 단어: "오늘의 마음으로 노래 만들기"가 이 단어를 미리 골라 준다 */
+const MOOD_WORD: Record<MoodId, string> = {
+  joy: 'happy',
+  flutter: 'flutter',
+  calm: 'peace',
+  tired: 'tired',
+  sad: 'sadness',
+  anxious: 'anxiety',
+  angry: 'anger',
+};
 
 /** /today: 오늘의 마음 날씨 테스트 3문항 → 결과 화면. 결과는 오늘의 구슬로 유리병에 들어간다 (뼈대 UI) */
 export function DailyQuizScreen() {
   const store = useStore();
+  const router = useRouter();
   const day = useApp(() => todayKey());
   const [picks, setPicks] = useState<MoodId[]>([]);
   const [result, setResult] = useState<MoodId | null>(null);
+  const [busy, setBusy] = useState(false);
 
   if (!day) return null;
   const quiz = quizForDay(day);
+
+  /** 오늘의 감정에 맞는 단어로 바로 작곡을 맡기고 공방(작곡 중 화면)으로 */
+  async function composeToday(mood: MoodId) {
+    if (busy) return;
+    const source = { kind: 'words' as const, words: [MOOD_WORD[mood]] };
+    const request = songRequestFor(source);
+    if (!request) return;
+    setBusy(true);
+    try {
+      const { taskId, mode } = await startSong(source);
+      store.addPending({ taskId, title: request.title, source, mode });
+      router.push('/create');
+    } catch (error) {
+      toast(error instanceof Error ? error.message : '작곡을 맡기지 못했어요.', { tone: 'error' });
+      setBusy(false);
+    }
+  }
 
   if (result) {
     const mood = getMood(result);
@@ -31,7 +65,10 @@ export function DailyQuizScreen() {
           <p className="mt-1 text-ink-600">오늘 마음은 {mood.label}에 가까워</p>
           <span className="mt-6 size-10 rounded-full border border-line" style={{ background: mood.color }} aria-hidden />
           <p className="mt-2 text-sm text-ink-600">이 구슬이 유리병에 들어갔어. 내일은 새 테스트가 기다려!</p>
-          <ButtonLink href="/" className="mt-8 w-full">
+          <Button onClick={() => composeToday(result)} disabled={busy} className="mt-8 w-full">
+            {busy ? '오목이에게 부탁하는 중…' : '오늘의 마음으로 노래 만들기'}
+          </Button>
+          <ButtonLink href="/" variant="secondary" className="mt-2 w-full">
             홈에서 유리병 보기
           </ButtonLink>
           <Button

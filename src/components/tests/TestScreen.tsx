@@ -121,7 +121,9 @@ function Runner({ test }: { test: PsychTest }) {
         return;
       }
       const result = resultFor(test, all);
-      store.saveTestResult(test.id, result.id, result.mood);
+      // 문항별로 고른 답도 저장한다: 오목이가 대화에서 나를 떠올리는 재료
+      const answers = all.map((choice, qi) => ({ q: test.questions[qi].text, a: test.questions[qi].choices[choice].label }));
+      store.saveTestResult(test.id, result.id, result.mood, answers);
       router.replace(`/tests/${test.id}?result=${result.id}`);
     }, 160);
   }

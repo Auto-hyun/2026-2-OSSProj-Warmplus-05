@@ -3,7 +3,9 @@ import type { DayKey } from '@/lib/date';
 import type { Birth } from '@/lib/fortune';
 import type { MusicMode, SongSource } from '@/lib/music/types';
 
-export type TestRecord = { testId: string; resultId: string; at: string };
+/** 심리테스트 기록. answers는 문항별로 고른 답 (오목이가 나를 알아 가는 재료) */
+export type TestRecord = { testId: string; resultId: string; at: string; answers?: TestAnswer[] };
+export type TestAnswer = { q: string; a: string };
 
 /** 하루 하나의 기분 기록 (유리병 구슬). 같은 날 다시 기록하면 덮어쓴다 */
 export type MoodEntry = {
