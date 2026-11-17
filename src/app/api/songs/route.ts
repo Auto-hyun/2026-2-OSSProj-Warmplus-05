@@ -1,21 +1,24 @@
 import { musicMode } from '@/lib/music/mode';
 import { isSongSource, songRequestFor } from '@/lib/music/prompt';
-import { createSampleTask, samplePoolFor } from '@/lib/music/sample';
+import { createSampleTask, ownedSampleFiles, pickSampleSongs, sampleCandidates } from '@/lib/music/sample';
 import { createSunoTask, SunoError } from '@/lib/music/suno';
 import { createRateLimiter } from '@/lib/rate-limit';
 
 /** 실제 작곡은 크레딧이 들어서, 한 사람(IP)이 10분에 6번까지만 */
 const allow = createRateLimiter(6, 10 * 60_000);
 
-/** 작곡 맡기기: { source } → { taskId, mode } */
+/** 작곡 맡기기: { source, exclude? } → { taskId, mode }. exclude: 이미 가진 곡 주소 (샘플 곡 모드에서 되도록 빼고 고른다) */
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as { source?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as { source?: unknown; exclude?: unknown } | null;
   const source = isSongSource(body?.source) ? body.source : null;
   const req = source && songRequestFor(source);
   if (!source || !req) return Response.json({ error: '노래 재료가 올바르지 않아요.' }, { status: 400 });
 
   const mode = musicMode();
-  if (mode === 'sample') return Response.json({ taskId: createSampleTask(samplePoolFor(source, req.family)), mode });
+  if (mode === 'sample') {
+    const files = pickSampleSongs(sampleCandidates(source), ownedSampleFiles(body?.exclude));
+    return Response.json({ taskId: createSampleTask(files), mode });
+  }
 
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
   if (!allow(ip)) return Response.json({ error: '노래를 너무 자주 만들었어요. 10분 뒤에 다시 해 주세요.' }, { status: 429 });

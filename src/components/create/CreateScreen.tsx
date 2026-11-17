@@ -41,7 +41,10 @@ export function CreateScreen() {
     if (!req || busy) return;
     setBusy(true);
     try {
-      const { taskId, mode } = await startSong(source);
+      const { taskId, mode } = await startSong(
+        source,
+        store.getState().songs.map((s) => s.audioUrl),
+      );
       store.addPending({ taskId, title: req.title, source, mode });
       track('song_create', { kind: source.kind });
     } catch (error) {
