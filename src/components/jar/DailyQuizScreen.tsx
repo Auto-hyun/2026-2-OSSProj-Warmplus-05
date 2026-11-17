@@ -44,8 +44,13 @@ export function DailyQuizScreen() {
     if (!request) return;
     setBusy(true);
     try {
-      const { taskId, mode } = await startSong(source);
+      // 노래 공방과 같게: 이미 가진 곡은 피해서 고르고, 이용 기록을 남긴다
+      const { taskId, mode } = await startSong(
+        source,
+        store.getState().songs.map((s) => s.audioUrl),
+      );
       store.addPending({ taskId, title: request.title, source, mode });
+      track('song_create', { kind: source.kind });
       router.push('/create');
     } catch (error) {
       toast(error instanceof Error ? error.message : '작곡을 맡기지 못했어요.', { tone: 'error' });
