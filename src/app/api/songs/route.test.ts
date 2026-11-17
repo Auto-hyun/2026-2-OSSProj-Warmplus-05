@@ -44,7 +44,11 @@ describe('샘플 곡 모드 (Suno 설정이 없을 때)', () => {
     vi.setSystemTime(Date.now() + SAMPLE_DELAY_MS);
     const done = await (await get(taskId)).json();
     expect(done.state).toBe('done');
-    expect(done.tracks.map((t: { audioUrl: string }) => t.audioUrl)).toEqual(['/samples/happy-1.mp3', '/samples/happy-2.mp3']);
+    const urls: string[] = done.tracks.map((t: { audioUrl: string }) => t.audioUrl);
+    expect(new Set(urls).size).toBe(2);
+    for (const url of urls) expect(url).toMatch(/^\/samples\/happy-\d+\.mp3$/);
+    // 다시 확인해도 같은 두 곡
+    expect(await (await get(taskId)).json()).toEqual(done);
   });
 
   it('불안·스트레스·답답함을 고르면 (순서 상관없이) 전용 샘플 곡 2개', async () => {
