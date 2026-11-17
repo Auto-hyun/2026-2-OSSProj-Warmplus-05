@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: '개인정보 처리방침 · 온사�
 const STORED: { when: string; what: string; where: string }[] = [
   {
     when: '앱을 쓸 때 (로그인 없이)',
-    what: '마음 기록(감정·메모), 만든 노래, 심리테스트 결과, 오목이 대화, 닉네임·생일',
+    what: '마음 기록(감정·메모), 만든 노래, 심리테스트 결과와 고른 답, 오목이 대화, 닉네임·생일',
     where: '지금 쓰는 브라우저에만 저장해요.',
   },
   {
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
 
         <Section title="3. 오목이와 대화할 때">
           <p>
-            대화 내용은 이 기기에만 저장해요. 오목이가 답을 만들 때는 최근 대화와 일부 기록(닉네임, 최근 마음 기록, 심리테스트 결과, 만든 노래,
+            대화 내용은 이 기기에만 저장해요. 오목이가 답을 만들 때는 최근 대화와 일부 기록(닉네임, 최근 마음 기록, 심리테스트 결과와 고른 답, 만든 노래,
             오늘의 오하아사)을 Anthropic의 Claude API로 보내요.
           </p>
           <p>오목이는 마음을 나누는 친구이고, 전문 상담이나 치료를 대신하지 않아요. 많이 힘들 때는 자살예방 상담전화 109(24시간)에 연락해 주세요.</p>
@@ -107,8 +107,8 @@ export default function PrivacyPage() {
 
         <Section title="6. 내 정보 지우기">
           <ul className="list-disc space-y-1 pl-5">
-            <li>마이페이지 계정 카드의 &lsquo;내 기록 지우기&rsquo;로 계정 기록을 바로 지울 수 있어요.</li>
-            <li>쓴 글은 마이페이지 &lsquo;내가 쓴 글&rsquo;에서 하나씩 지울 수 있어요.</li>
+            <li>마음 마을(지도) 오른쪽 위 &lsquo;내 정보&rsquo;의 &lsquo;내 기록 지우기&rsquo;로 계정 기록을 바로 지울 수 있어요.</li>
+            <li>쓴 글은 홈 오른쪽 위 &lsquo;내 기록&rsquo;의 &lsquo;내가 쓴 글&rsquo;에서 하나씩 지울 수 있어요.</li>
             <li>카카오 계정 연결 끊기나 탈퇴는 아래로 문의해 주세요.</li>
           </ul>
         </Section>
