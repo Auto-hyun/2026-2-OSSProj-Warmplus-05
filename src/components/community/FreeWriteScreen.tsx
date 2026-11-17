@@ -5,18 +5,23 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { AppBar } from '@/components/layout/AppBar';
 import { toast } from '@/components/ui/Toast';
-import { addFreePost, FREE_CONTENT_MAX, FREE_TITLE_MAX, validateFreePost } from '@/lib/freeBoard';
+import { track } from '@/lib/events';
+import { createFreePost, FREE_CONTENT_MAX, FREE_TITLE_MAX, validateFreePost } from '@/lib/freeBoard';
 import { pickableSongs } from '@/lib/songs';
 import { NICKNAME_MAX } from '@/lib/storage/store';
 import { useApp, useStore } from '@/lib/storage/useApp';
+import { useSupabase } from '@/lib/supabase/useSupabase';
 import { BgmPicker } from './BgmPicker';
+import { NeedsSupabase } from './NeedsSupabase';
 
 const length = (s: string) => Array.from(s.trim()).length;
 
-/** 자유게시판 글쓰기 (샘플): 제목과 내용을 적어 이 기기에 저장한다. 내 노래를 같이 들을 곡으로 붙일 수 있다 (?song=) */
+/** 자유게시판 글쓰기: 제목과 내용을 적어 올린다 (Supabase). 내 노래를 같이 들을 곡으로 붙일 수 있다 (?song=) */
 export function FreeWriteScreen() {
   const router = useRouter();
   const params = useSearchParams();
+  const supabase = useSupabase();
+  const [sending, setSending] = useState(false);
   const songs = useApp(pickableSongs);
   const [bgmId, setBgmId] = useState<string | null>(params.get('song'));
   // 지운 노래 등 없는 곡이면 배경음악 없이
@@ -32,15 +37,18 @@ export function FreeWriteScreen() {
   const nickname = askName ? name.trim() : (savedName ?? '');
   const valid = validateFreePost({ nickname, title, content }) === null && length(nickname) <= NICKNAME_MAX;
 
-  function submit() {
-    if (!valid) return;
+  async function submit() {
+    if (!supabase || !valid || sending) return;
+    setSending(true);
     try {
       if (askName) store.setNickname(nickname);
-      addFreePost({ nickname, title, content, bgm: bgm && { title: bgm.title, url: bgm.audioUrl } });
+      await createFreePost(supabase, { nickname, title, content, bgm: bgm && { title: bgm.title, url: bgm.audioUrl } });
+      track('post_create', { board: 'free', bgm: Boolean(bgm) });
       toast('글을 올렸어요!');
       router.replace('/community?board=free');
     } catch (error) {
       toast(error instanceof Error ? error.message : '글을 올리지 못했어요.', { tone: 'error' });
+      setSending(false);
     }
   }
 
@@ -48,12 +56,23 @@ export function FreeWriteScreen() {
     <button
       type="button"
       onClick={submit}
-      disabled={!valid}
+      disabled={!valid || sending || !supabase}
       className="h-10 rounded-full bg-leaf-600 px-4 text-sm font-bold text-white active:brightness-95 disabled:bg-line disabled:text-ink-400"
     >
-      올리기
+      {sending ? '올리는 중…' : '올리기'}
     </button>
   );
+
+  if (supabase === null) {
+    return (
+      <>
+        <AppBar title="자유게시판 글쓰기" backHref="/community?board=free" />
+        <div className="px-4">
+          <NeedsSupabase />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -128,10 +147,6 @@ export function FreeWriteScreen() {
             </p>
           )}
         </section>
-
-        <p className="rounded-2xl bg-cream px-4 py-3 text-[13px] leading-relaxed text-cocoa-900">
-          샘플 게시판이에요. 글은 이 기기에만 저장되고 다른 사람에게는 보이지 않아요.
-        </p>
       </div>
     </>
   );
