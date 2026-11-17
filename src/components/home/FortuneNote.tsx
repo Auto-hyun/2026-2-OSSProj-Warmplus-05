@@ -1,11 +1,26 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { XIcon } from '@phosphor-icons/react';
 import { todayKey } from '@/lib/date';
 import { FortuneSection } from './FortuneSection';
 
 const SEEN_KEY = 'fortune-note-seen';
+
+/** 다른 탭에서 쪽지를 열면 여기도 바뀐다 */
+function subscribeSeen(onChange: () => void) {
+  window.addEventListener('storage', onChange);
+  return () => window.removeEventListener('storage', onChange);
+}
+
+/** 오늘 이미 열어 봤는지 (localStorage를 못 쓰면 본 것으로 친다) */
+function seenTodayInStorage(): boolean {
+  try {
+    return localStorage.getItem(SEEN_KEY) === todayKey();
+  } catch {
+    return true;
+  }
+}
 
 /**
  * 홈 방 그림 위 접힌 쪽지. 오늘 아직 안 열었으면 알림 점과 함께 살랑이고,
@@ -13,18 +28,14 @@ const SEEN_KEY = 'fortune-note-seen';
  */
 export function FortuneNote({ className, style }: { className?: string; style?: CSSProperties }) {
   const [open, setOpen] = useState(false);
-  const [seenToday, setSeenToday] = useState(true);
-
-  // localStorage는 클라이언트에서만 읽는다 (서버 렌더와 어긋나지 않게)
-  useEffect(() => {
-    try {
-      setSeenToday(localStorage.getItem(SEEN_KEY) === todayKey());
-    } catch {}
-  }, []);
+  // localStorage는 클라이언트에서만 읽는다 (서버 렌더와 첫 화면은 '본 것'으로 맞춰 어긋나지 않게)
+  const seenBefore = useSyncExternalStore(subscribeSeen, seenTodayInStorage, () => true);
+  const [openedNow, setOpenedNow] = useState(false);
+  const seenToday = seenBefore || openedNow;
 
   const openNote = () => {
     setOpen(true);
-    setSeenToday(true);
+    setOpenedNow(true);
     try {
       localStorage.setItem(SEEN_KEY, todayKey());
     } catch {}

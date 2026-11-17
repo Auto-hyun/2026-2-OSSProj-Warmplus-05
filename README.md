@@ -89,8 +89,9 @@ npm run build   # 배포용 빌드
 ```
 
 - **환경변수:** `src/.env.example`을 참고해 `src/.env.local`에 설정해요.
-- **음악:** 미리 만들어 둔 곡을 들려주는 샘플 곡 모드(`MUSIC_PROVIDER=sample`)로 제공해요. 곡은 `src/public/samples/`에 감정 갈래별로 2곡씩 있어요(`sad`·`stress`·`happy`·`calm`).
-  - 특정 감정 단어 조합에는 전용 곡을 붙일 수 있어요. 예: 불안·스트레스·답답함 → `unease-1·2.mp3`. 조합은 `src/lib/music/sample.ts`의 `WORD_POOLS`에 추가해요.
+- **음악:** 미리 만들어 둔 곡을 들려주는 샘플 곡 모드(`MUSIC_PROVIDER=sample`)로 제공해요. 곡은 `src/public/samples/`에 감정 갈래별로 12곡씩 있고(`sad`·`stress`·`happy`·`calm`, 감정 단어마다 2곡), 노래를 만들 때마다 그중 2곡을 골라 들려줘요.
+  - 곡을 더 넣으면 `src/lib/music/sample.ts`의 `SAMPLE_POOLS`에서 곡 수도 늘려요.
+  - 특정 감정 단어 조합에는 전용 곡을 붙일 수 있어요. 예: 불안·스트레스·답답함 → `unease-1·2.mp3`. 조합은 같은 파일의 `WORD_POOLS`와 `SAMPLE_POOLS`에 추가해요.
 - **커뮤니티:**
   - 이야기 광장은 Supabase가 필요해요. Docker를 켜고 `src/`에서 `supabase start`를 실행한 뒤, 출력된 URL과 키를 환경변수에 넣어요.
   - 자유게시판은 설정 없이 바로 써 볼 수 있어요.

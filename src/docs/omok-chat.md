@@ -7,8 +7,8 @@
 | 무엇 | 어디 | 설명 |
 | --- | --- | --- |
 | 대화 기록 | `AppState.chat.messages` | `{ id, role: 'user' \| 'omok', text, at, crisis? }`, 전부 저장 |
-| 오목이 노트 | `AppState.chat.note` | 대화 20줄마다 `/api/chat/note`가 요약을 새로 써서 저장 |
-| 대화 맥락 | `src/lib/omok/context.ts` | 노트 + 최근 14일 기분 + 최근 테스트 5개 + 최근 대화 20줄 → 대답할 때 이것만 서버로 보냄 |
+| 오목이 노트 | `AppState.chat.note` | 대화 20줄마다 `/api/chat/note`가 요약을 새로 써서 저장. IP당 10분 10회 |
+| 대화 맥락 | `src/lib/omok/context.ts` | 노트 + 닉네임 + 최근 14일 기분 + 최근 테스트 5개(결과 요약 포함) + 최근 노래 만들기 5번 + 오늘의 오하아사 + 최근 대화 20줄 → 대답할 때 이것만 서버로 보냄. 서버는 모양을 검사하고 길이를 잘라서 받음 |
 | 대답 서버 | `src/app/api/chat/route.ts` · `src/lib/omok/claude.ts` | 위기 감지 → 키 없으면 정해진 말 → Claude 호출 (오목이 성격 지침 + 기억). IP당 10분 30회 |
 | 위기 감지 | `src/lib/omok/safety.ts` | 위기 표현이면 109·112·119 안내를 먼저 답함 |
 | 화면 | `src/components/chat/ChatScreen.tsx` | 뼈대 UI (말풍선, 입력창, 대화 지우기) |
