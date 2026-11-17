@@ -113,6 +113,53 @@ describe('store', () => {
   });
 });
 
+describe('계정 기록 (카카오 회원 동기화)', () => {
+  it('계정 기록으로 바꿔 넣어도 방금 만든 곡(저장 전), 작곡 결과, 대화는 그대로 둔다', () => {
+    const { store } = setup();
+    store.addChatMessage({ role: 'user', text: '안녕' });
+    store.addPending({ taskId: 't1', title: '행복의 노래', source: words, mode: 'sample' });
+    store.completePending('t1', [track('fresh')]);
+    const old = { ...track('old'), title: '옛 노래', mode: 'sample' as const, source: words, createdAt: '2026-10-01T00:00:00.000Z', saved: true };
+
+    store.replaceRecords({
+      profile: { nickname: '동글이', birth: { date: '2003-02-01', time: null } },
+      moods: [{ day: '2026-10-17', mood: 'sad', source: 'daily', at: '2026-10-17T10:00:00.000Z' }],
+      tests: [{ testId: 'mind-sound', resultId: 'c', at: '2026-10-17T10:00:00.000Z' }],
+      savedSongs: [old],
+    });
+
+    const state = store.getState();
+    expect(state.profile).toEqual({ nickname: '동글이', birth: { date: '2003-02-01', time: null }, metOmok: false });
+    expect(state.moods.map((m) => m.day)).toEqual(['2026-10-17']);
+    expect(state.tests).toEqual([{ testId: 'mind-sound', resultId: 'c', at: '2026-10-17T10:00:00.000Z' }]);
+    expect(state.songs.map((s) => s.id)).toEqual(['fresh', 'old']);
+    expect(state.outcome).toEqual({ songIds: ['fresh'] });
+    expect(state.chat.messages).toHaveLength(1);
+  });
+
+  it('계정 기록 지우기: 닉네임·생일·기분·테스트·저장한 곡을 지우고, 대화와 저장 전 곡은 둔다', () => {
+    const { store } = setup();
+    store.setNickname('동글이');
+    store.setBirth({ date: '2003-02-01', time: null });
+    store.meetOmok();
+    store.recordMood('sad');
+    store.saveTestResult('mind-sound', 'c');
+    store.addPending({ taskId: 't1', title: '행복의 노래', source: words, mode: 'sample' });
+    store.completePending('t1', [track('a'), track('b')]);
+    store.setSongSaved('a', true);
+    store.addChatMessage({ role: 'user', text: '안녕' });
+
+    store.clearRecords();
+
+    const state = store.getState();
+    expect(state.profile).toEqual({ nickname: null, birth: null, metOmok: true });
+    expect(state.moods).toEqual([]);
+    expect(state.tests).toEqual([]);
+    expect(state.songs.map((s) => s.id)).toEqual(['b']);
+    expect(state.chat.messages).toHaveLength(1);
+  });
+});
+
 describe('parseState', () => {
   it('망가진 문자열·다른 버전은 null', () => {
     expect(parseState('{')).toBeNull();
