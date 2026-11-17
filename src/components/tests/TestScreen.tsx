@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
 import type { MoodFamily } from '@/data/music';
 import { getTest, getTestResult, type PsychTest, type TestResult } from '@/data/tests';
@@ -74,8 +74,10 @@ function Runner({ test }: { test: PsychTest }) {
   const store = useStore();
   const [started, setStarted] = useState(false);
   const [picks, setPicks] = useState<number[]>([]);
-  // 지금 문항에서 고른 선택지 (다음을 눌러야 확정)
+  // 지금 문항에서 고른 선택지 (잠깐 표시했다가 자동으로 다음 문항으로)
   const [selected, setSelected] = useState<number | null>(null);
+  // 넘어가는 중 연타 방지
+  const pending = useRef(false);
 
   if (!started) {
     return (
@@ -105,24 +107,32 @@ function Runner({ test }: { test: PsychTest }) {
   const index = picks.length;
   const total = test.questions.length;
   const question = test.questions[index];
-  const last = index === total - 1;
 
-  function next() {
-    if (selected === null) return;
-    const all = [...picks, selected];
-    if (all.length < total) {
-      setPicks(all);
-      setSelected(null);
-      return;
-    }
-    const result = resultFor(test, all);
-    store.saveTestResult(test.id, result.id, result.mood);
-    track('test_complete', { testId: test.id, resultId: result.id, ...(result.mood ? { mood: result.mood } : {}) });
-    router.replace(`/tests/${test.id}?result=${result.id}`);
+  /** 선택지를 누르면 잠깐 선택 표시를 보여 주고 바로 다음 문항(마지막이면 결과)으로 */
+  function pick(i: number) {
+    if (pending.current) return;
+    pending.current = true;
+    setSelected(i);
+    setTimeout(() => {
+      pending.current = false;
+      const all = [...picks, i];
+      if (all.length < total) {
+        setPicks(all);
+        setSelected(null);
+        return;
+      }
+      const result = resultFor(test, all);
+      // 문항별로 고른 답도 저장한다: 오목이가 대화에서 나를 떠올리는 재료
+      const answers = all.map((choice, qi) => ({ q: test.questions[qi].text, a: test.questions[qi].choices[choice].label }));
+      store.saveTestResult(test.id, result.id, result.mood, answers);
+      track('test_complete', { testId: test.id, resultId: result.id, ...(result.mood ? { mood: result.mood } : {}) });
+      router.replace(`/tests/${test.id}?result=${result.id}`);
+    }, 160);
   }
 
   /** 뒤로: 앞 문항으로 (앞에서 고른 답을 다시 보여 준다). 첫 문항이면 시작 화면으로 */
   function back() {
+    pending.current = false;
     if (index === 0) {
       setStarted(false);
       setSelected(null);
@@ -135,14 +145,7 @@ function Runner({ test }: { test: PsychTest }) {
   return (
     <>
       <TestHeader title="마음 테스트 숲" back={back} />
-      <Body
-        align="top"
-        footer={
-          <button type="button" onClick={next} disabled={selected === null} className={primary}>
-            {last ? '결과 보기' : '다음'}
-          </button>
-        }
-      >
+      <Body align="top" footer={null}>
         <div className="flex items-center gap-4">
           <span className="shrink-0 text-[15px] font-semibold text-cocoa-900 tabular-nums">
             {index + 1} / {total}
@@ -171,7 +174,7 @@ function Runner({ test }: { test: PsychTest }) {
                   type="button"
                   role="radio"
                   aria-checked={checked}
-                  onClick={() => setSelected(i)}
+                  onClick={() => pick(i)}
                   className={cn(
                     'flex min-h-[58px] w-full items-center gap-3 rounded-2xl border px-5 py-3.5 text-left transition-colors',
                     checked ? 'border-leaf-600 bg-leaf-600/10' : 'border-cream-line bg-surface active:bg-black/[0.03]',

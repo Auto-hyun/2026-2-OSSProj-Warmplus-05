@@ -2,7 +2,7 @@ import { createMemoryAdapter } from '@/lib/storage/adapters';
 import { createStore } from '@/lib/storage/store';
 import { buildChatContext, parseChatContext } from './context';
 
-const EMPTY = { note: null, nickname: null, moods: [], tests: [], songs: [], fortune: null, messages: [] };
+const EMPTY = { note: null, nickname: null, moods: [], tests: [], answers: [], songs: [], fortune: null, messages: [] };
 
 describe('화면이 보낸 맥락 받기 (서버)', () => {
   it('모양이 맞지 않는 값은 버린다', () => {
@@ -46,6 +46,7 @@ describe('오목이 대화 맥락', () => {
       nickname: null,
       moods: ['2026-10-18 비(슬픔) 메모: 시험 망침'],
       tests: [],
+      answers: [],
       songs: [],
       fortune: null,
       messages: [

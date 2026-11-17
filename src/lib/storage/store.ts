@@ -3,7 +3,7 @@ import { todayKey } from '@/lib/date';
 import type { Birth } from '@/lib/fortune';
 import type { Track } from '@/lib/music/types';
 import { createDefaultState } from './adapters';
-import type { AppState, ChatMessage, MoodEntry, OmokNote, PendingSong, Records, StorageAdapter } from './types';
+import type { AppState, ChatMessage, MoodEntry, OmokNote, PendingSong, Records, StorageAdapter, TestAnswer } from './types';
 
 export const NICKNAME_MAX = 12;
 export const SONG_TITLE_MAX = 30;
@@ -15,8 +15,8 @@ export type AppStore = {
   setNickname(name: string): { ok: boolean };
   setBirth(birth: Birth | null): void;
   meetOmok(): void;
-  /** 결과에 감정(mood)이 있으면 오늘 기분으로도 기록한다 */
-  saveTestResult(testId: string, resultId: string, mood?: MoodId): void;
+  /** 결과에 감정(mood)이 있으면 오늘 기분으로도 기록한다. answers는 문항별로 고른 답 */
+  saveTestResult(testId: string, resultId: string, mood?: MoodId, answers?: TestAnswer[]): void;
   /** 오늘(한국 날짜) 기분 기록. 같은 날 다시 하면 덮어쓴다 */
   recordMood(mood: MoodId, options?: { source?: MoodEntry['source']; testId?: string; note?: string }): void;
   /** 대화 한 줄 저장 (오래된 것이 앞에 쌓인다) */
@@ -107,9 +107,10 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
       if (!state.profile.metOmok) set({ ...state, profile: { ...state.profile, metOmok: true } });
     },
 
-    saveTestResult(testId, resultId, mood) {
-      set({ ...state, tests: [{ testId, resultId, at: now() }, ...state.tests] });
-      if (mood) recordMood(mood, { source: 'test', testId });
+    saveTestResult(testId, resultId, mood, answers) {
+      set({ ...state, tests: [{ testId, resultId, at: now(), answers }, ...state.tests] });
+      // 오늘 구슬이 아직 없을 때만 기록한다: 마음날씨로 고른 오늘 감정을 테스트가 덮어쓰지 않게
+      if (mood && !state.moods.some((m) => m.day === todayKey())) recordMood(mood, { source: 'test', testId });
     },
 
     recordMood,

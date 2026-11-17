@@ -14,6 +14,8 @@ export type ChatContext = {
   moods: string[];
   /** 최근 테스트 결과 5개 ('2026-11-17 나의 마음 소리 유형: 조용한 빗소리 (결과 요약)') */
   tests: string[];
+  /** 가장 최근 테스트에서 문항별로 고른 답 ('문항 → 고른 답') */
+  answers: string[];
   /** 최근 노래 만들기 5번과 그중 저장한 곡 */
   songs: string[];
   /** 생일을 넣었으면 오늘의 오하아사 */
@@ -25,6 +27,7 @@ export type ChatContext = {
 export const RECENT_MOOD_DAYS = 14;
 export const RECENT_MESSAGES = 20;
 const RECENT_TESTS = 5;
+const RECENT_ANSWERS = 6;
 const RECENT_COMPOSES = 5;
 
 /** 서버가 받는 맥락의 길이 제한: 화면이 보낸 값을 그대로 믿지 않는다 (API 비용 폭주·잘못된 요청 막기) */
@@ -75,6 +78,7 @@ export function parseChatContext(raw: unknown): ChatContext {
     nickname: textOf(c.nickname, NICKNAME_MAX),
     moods: linesOf(c.moods, RECENT_MOOD_DAYS),
     tests: linesOf(c.tests, RECENT_TESTS),
+    answers: linesOf(c.answers, RECENT_ANSWERS),
     songs: linesOf(c.songs, RECENT_COMPOSES),
     fortune: textOf(c.fortune, LINE_MAX),
     messages: parseMessages(c.messages, RECENT_MESSAGES),
@@ -96,6 +100,7 @@ export function buildChatContext(state: AppState, today: DayKey = todayKey()): C
       const result = test && getTestResult(test, t.resultId);
       return test && result ? [`${koreanDay(t.at)} ${test.title}: ${result.name} (${result.summary})`] : [];
     }),
+    answers: (state.tests.find((t) => t.answers?.length)?.answers ?? []).slice(0, RECENT_ANSWERS).map((a) => `${a.q} → ${a.a}`),
     songs: composeLines(state.songs),
     fortune: fortune
       ? `${fortune.zodiac.name} ${fortune.rank}위(${fortune.rankLabel}) · ${fortune.luck} · ${fortune.advice} · 럭키 아이템 ${fortune.item.name}, 럭키 컬러 ${fortune.color.name}`

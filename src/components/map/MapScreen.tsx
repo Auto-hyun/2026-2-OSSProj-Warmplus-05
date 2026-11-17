@@ -2,9 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import type { ReactNode } from 'react';
-import { BellButton, HomeButton } from '@/components/ui/RoundButton';
+import { useState, type ReactNode } from 'react';
+import { UserIcon, XIcon } from '@phosphor-icons/react';
+import { AccountCard } from '@/components/me/AccountCard';
+import { ProfileCard } from '@/components/me/ProfileCard';
+import { ROUND } from '@/components/ui/RoundButton';
 import { toast } from '@/components/ui/Toast';
+import { cn } from '@/lib/cn';
 
 /** 지도 기준 크기(px, Figma 프레임). 위치는 이 크기에 대한 %로 둬서 화면 폭이 달라도 구도가 유지된다 */
 const W = 390;
@@ -35,13 +39,31 @@ const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
 /** 마음 마을: 마을 그림 위 장소를 누르면 각 기능으로 들어간다. 그림은 public/village에서 교체 가능 */
 export function MapScreen() {
+  // 오른쪽 위 내 정보 토글: 이름(프로필)과 카카오 계정을 여기서 본다
+  const [profileOpen, setProfileOpen] = useState(false);
+
   return (
     <>
-      <header className="flex items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
-        <HomeButton />
-        <h1 className="text-[28px] font-bold text-cocoa-900">마음 마을</h1>
-        <BellButton />
+      <header className="grid grid-cols-[48px_1fr_48px] items-center px-5 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
+        <span aria-hidden />
+        <h1 className="text-center text-[28px] font-bold text-cocoa-900">마음 마을</h1>
+        <button
+          type="button"
+          aria-label={profileOpen ? '내 정보 닫기' : '내 정보 보기'}
+          aria-expanded={profileOpen}
+          onClick={() => setProfileOpen(!profileOpen)}
+          className={cn(ROUND, 'justify-self-end')}
+        >
+          {profileOpen ? <XIcon size={24} aria-hidden /> : <UserIcon size={24} aria-hidden />}
+        </button>
       </header>
+
+      {profileOpen && (
+        <div className="space-y-3 px-4 pb-3">
+          <ProfileCard />
+          <AccountCard />
+        </div>
+      )}
 
       <nav aria-label="마음 마을 장소" className="relative isolate w-full overflow-hidden" style={{ aspectRatio: `${W} / ${H}` }}>
         <Image src="/village/map-bg.webp" alt="" fill preload sizes="480px" className="-z-10 object-cover" />
