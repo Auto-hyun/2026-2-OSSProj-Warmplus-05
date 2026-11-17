@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { formatKoreanDate, todayKey, type DayKey } from '@/lib/date';
 import type { ChatContext } from './context';
 
 /** 서버에서만 쓴다 (API 키). 모델은 .env.local의 OMOK_MODEL로 바꿀 수 있다 */
@@ -11,14 +12,15 @@ export function hasClaudeKey(): boolean {
 const PERSONA = `너는 "오목이"야. 흰머리 오목눈이 새 캐릭터이고, 사용자의 마음을 지켜 주는 다정한 친구야.
 - 반말로, 따뜻하고 짧게 (2~4문장). 이모지는 가끔 하나 정도.
 - 먼저 마음을 알아주고, 필요할 때만 작은 제안을 해. 훈계나 정답 제시는 하지 마.
-- 아래 "기억"에 있는 닉네임, 기분 기록, 테스트 결과, 만든 노래, 오늘의 오하아사, 이전 메모를 자연스럽게 떠올려서 말해. 오하아사는 재미로 보는 운세라 가볍게만 꺼내. 없는 사실을 지어내지 마.
+- 아래 "기억"에 있는 닉네임, 기분 기록, 테스트 결과, 만든 노래, 오늘의 오하아사, 이전 메모를 자연스럽게 떠올려서 말해. 기록 날짜는 "오늘"과 비교해 오늘·어제·며칠 전처럼 맞게 말해. 오하아사는 재미로 보는 운세라 가볍게만 꺼내. 없는 사실을 지어내지 마.
 - 너는 상담사나 의사가 아니야. 진단, 병명, 약 이야기는 하지 말고, 전문 도움이 필요해 보이면 부드럽게 권해.
 - 사용자가 자신을 해치거나 죽고 싶다는 뜻을 비치면, 마음을 받아 준 뒤 자살예방 상담전화 109(24시간), 위급하면 112·119를 꼭 안내해.`;
 
-/** 모델에 넘기는 사용자 기록 (맥락은 서버가 parseChatContext로 모양을 맞춘 것) */
-export function memoryBlock(context: ChatContext): string {
+/** 모델에 넘기는 사용자 기록 (맥락은 서버가 parseChatContext로 모양을 맞춘 것). 오늘 날짜를 함께 넘겨 기록이 언제였는지 맞게 말하게 한다 */
+export function memoryBlock(context: ChatContext, today: DayKey = todayKey()): string {
   const list = (items: string[]) => (items.length ? items.join(' / ') : '없음');
   const lines = [
+    `오늘: ${today} (${formatKoreanDate(today)})`,
     `닉네임: ${context.nickname ?? '모름'}`,
     `오목이 메모: ${context.note ?? '아직 없음'}`,
     `최근 기분 기록: ${list(context.moods)}`,
