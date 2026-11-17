@@ -251,6 +251,23 @@ describe.skipIf(!url || !key)('기기 ↔ 계정 기록 맞추기', () => {
     sync.stop();
   });
 
+  it('다시 맞춰도 이 기기에서 고른 테스트 답은 남는다 (답은 계정에 올리지 않는다)', async () => {
+    const alice = await member();
+    const d = device();
+    const answers = [{ q: '비 오는 날 나는?', a: '창밖을 본다' }];
+    d.store.saveTestResult('mind-sound', 'c', undefined, answers);
+
+    const first = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await first.idle();
+    first.stop();
+    const again = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await again.idle();
+
+    expect(d.store.getState().tests.map((t) => t.answers)).toEqual([answers]);
+    expect((await pullRecords(alice.client)).tests.map((t) => t.resultId)).toEqual(['c']);
+    again.stop();
+  });
+
   it('맞추고 있는 동기화가 없어도 내 기록 지우기가 된다', async () => {
     const alice = await member();
     const d = device();

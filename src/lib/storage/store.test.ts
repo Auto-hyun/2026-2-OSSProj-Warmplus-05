@@ -137,6 +137,17 @@ describe('계정 기록 (카카오 회원 동기화)', () => {
     expect(state.chat.messages).toHaveLength(1);
   });
 
+  it('계정 기록으로 바꿔 넣어도 이 기기에서 고른 테스트 답은 같은 테스트 기록에 남긴다 (답은 계정에 올리지 않는다)', () => {
+    const { store } = setup();
+    const answers = [{ q: '비 오는 날 나는?', a: '창밖을 본다' }];
+    store.saveTestResult('mind-sound', 'c', undefined, answers);
+    const { testId, resultId, at } = store.getState().tests[0];
+
+    store.replaceRecords({ profile: { nickname: null, birth: null }, moods: [], tests: [{ testId, resultId, at }], savedSongs: [] });
+
+    expect(store.getState().tests).toEqual([{ testId, resultId, at, answers }]);
+  });
+
   it('계정 기록 지우기: 닉네임·생일·기분·테스트·저장한 곡을 지우고, 대화와 저장 전 곡은 둔다', () => {
     const { store } = setup();
     store.setNickname('동글이');

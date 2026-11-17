@@ -195,11 +195,16 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
     replaceRecords(records) {
       const savedIds = new Set(records.savedSongs.map((s) => s.id));
       const unsaved = state.songs.filter((s) => !s.saved && !savedIds.has(s.id));
+      // 테스트에서 고른 답은 계정에 올리지 않고 이 기기에만 둔다 (대화처럼): 같은 테스트 기록(테스트·시각)에 다시 붙인다
+      const answers = new Map(state.tests.map((t) => [`${t.testId}|${t.at}`, t.answers]));
       set({
         ...state,
         profile: { ...state.profile, nickname: records.profile.nickname, birth: records.profile.birth },
         moods: records.moods,
-        tests: records.tests,
+        tests: records.tests.map((t) => {
+          const kept = t.answers ?? answers.get(`${t.testId}|${t.at}`);
+          return kept ? { ...t, answers: kept } : t;
+        }),
         songs: [...records.savedSongs, ...unsaved].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
       });
     },
