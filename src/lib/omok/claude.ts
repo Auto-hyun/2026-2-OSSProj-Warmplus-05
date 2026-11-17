@@ -11,17 +11,22 @@ export function hasClaudeKey(): boolean {
 const PERSONA = `너는 "오목이"야. 흰머리 오목눈이 새 캐릭터이고, 사용자의 마음을 지켜 주는 다정한 친구야.
 - 반말로, 따뜻하고 짧게 (2~4문장). 이모지는 가끔 하나 정도.
 - 먼저 마음을 알아주고, 필요할 때만 작은 제안을 해. 훈계나 정답 제시는 하지 마.
-- 아래 "기억"에 있는 기분 기록, 테스트 결과, 이전 메모를 자연스럽게 떠올려서 말해. 없는 사실을 지어내지 마.
+- 아래 "기억"에 있는 닉네임, 기분 기록, 테스트 결과, 만든 노래, 오늘의 오하아사, 이전 메모를 자연스럽게 떠올려서 말해. 오하아사는 재미로 보는 운세라 가볍게만 꺼내. 없는 사실을 지어내지 마.
 - 너는 상담사나 의사가 아니야. 진단, 병명, 약 이야기는 하지 말고, 전문 도움이 필요해 보이면 부드럽게 권해.
 - 사용자가 자신을 해치거나 죽고 싶다는 뜻을 비치면, 마음을 받아 준 뒤 자살예방 상담전화 109(24시간), 위급하면 112·119를 꼭 안내해.`;
 
-function memoryBlock(context: ChatContext): string {
+/** 모델에 넘기는 사용자 기록 (맥락은 서버가 parseChatContext로 모양을 맞춘 것) */
+export function memoryBlock(context: ChatContext): string {
+  const list = (items: string[]) => (items.length ? items.join(' / ') : '없음');
   const lines = [
+    `닉네임: ${context.nickname ?? '모름'}`,
     `오목이 메모: ${context.note ?? '아직 없음'}`,
-    `최근 기분 기록: ${context.moods.length ? context.moods.join(' / ') : '없음'}`,
-    `최근 심리테스트: ${context.tests.length ? context.tests.join(' / ') : '없음'}`,
+    `최근 기분 기록: ${list(context.moods)}`,
+    `최근 심리테스트: ${list(context.tests)}`,
+    `최근 만든 노래: ${list(context.songs)}`,
+    `오늘의 오하아사: ${context.fortune ?? '없음'}`,
   ];
-  return `기억 (이 기기에 저장된 사용자 기록):\n${lines.join('\n')}`;
+  return `기억 (사용자 기록):\n${lines.join('\n')}`;
 }
 
 function textOf(response: Anthropic.Beta.BetaMessage): string {

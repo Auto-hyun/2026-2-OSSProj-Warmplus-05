@@ -1,26 +1,24 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { hasClaudeKey, omokReply } from '@/lib/omok/claude';
-import type { ChatContext } from '@/lib/omok/context';
+import { parseChatContext } from '@/lib/omok/context';
 import { CRISIS_REPLY, isCrisis } from '@/lib/omok/safety';
 import { createRateLimiter } from '@/lib/rate-limit';
 
 /** API 비용 때문에 한 사람(IP)이 10분에 30번까지만 */
 const allow = createRateLimiter(30, 10 * 60_000);
 
-const EMPTY: ChatContext = { note: null, moods: [], tests: [], messages: [] };
-
 /** 오목이 대답: { text, context } → { reply, crisis, mode }. API 키가 없으면 정해진 말(offline) */
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as { text?: unknown; context?: ChatContext } | null;
+  const body = (await request.json().catch(() => null)) as { text?: unknown; context?: unknown } | null;
   const text = typeof body?.text === 'string' ? body.text.trim().slice(0, 500) : '';
   if (!text) return Response.json({ error: '할 말을 적어 줘.' }, { status: 400 });
-  const context = body?.context ?? EMPTY;
+  const context = parseChatContext(body?.context);
 
   // 위기 표현은 모델보다 먼저, 항상 같은 안내로
   if (isCrisis(text)) return Response.json({ reply: CRISIS_REPLY, crisis: true, mode: 'safety' });
 
   if (!hasClaudeKey()) {
-    const today = context.moods?.[0];
+    const today = context.moods[0];
     const reply = today
       ? `그랬구나. 최근 마음 날씨가 "${today.replace(/^\S+ /, '').replace(/ 메모:.*$/, '')}"이었지. 조금 더 이야기해 줄래?`
       : '그랬구나. 이야기해 줘서 고마워. 오늘 마음 날씨는 어땠어?';
