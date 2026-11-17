@@ -40,8 +40,27 @@ describe('계정 기록 맞추기 (화면에 늘 붙어 있는 컴포넌트)', (
     render(<RecordSync />);
 
     auth.emit('INITIAL_SESSION', { user: { id: 'u1', is_anonymous: false } });
-    await waitFor(() => expect(startRecordSync).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'u1', expect.anything()));
+    await waitFor(() => expect(startRecordSync).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'u1', expect.anything(), expect.any(Function)));
     await waitFor(() => expect(track).toHaveBeenCalledWith('login', { provider: 'kakao' }));
+  });
+
+  it('받아 오는 사이 로그아웃되면 시작하던 맞추기를 무효로 한다 (늦게 온 결과를 쓰지 않는다)', async () => {
+    let finish: (value: ReturnType<typeof sync>) => void = () => {};
+    vi.mocked(startRecordSync).mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    const auth = fakeAuth();
+    render(<RecordSync />);
+
+    auth.emit('INITIAL_SESSION', { user: { id: 'u1', is_anonymous: false } });
+    await waitFor(() => expect(startRecordSync).toHaveBeenCalled());
+    const isCurrent = vi.mocked(startRecordSync).mock.calls[0][4]!;
+    expect(isCurrent()).toBe(true);
+
+    auth.emit('SIGNED_OUT', null);
+    await waitFor(() => expect(isCurrent()).toBe(false));
+    const late = sync(true);
+    finish(late);
+    await waitFor(() => expect(late.stop).toHaveBeenCalled());
+    expect(track).not.toHaveBeenCalled();
   });
 
   it('익명 계정(글쓰기용)이면 맞추지 않는다', async () => {

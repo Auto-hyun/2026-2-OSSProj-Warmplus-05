@@ -1,6 +1,6 @@
 import { createDefaultState } from '@/lib/storage/adapters';
 import type { MoodEntry, Records, Song } from '@/lib/storage/types';
-import { diffRecords, EMPTY_RECORDS, hasChanges, mergeRecords, recordsOf } from './records';
+import { applyChanges, diffRecords, EMPTY_RECORDS, hasChanges, mergeRecords, recordsOf } from './records';
 
 const words = { kind: 'words' as const, words: ['sadness'] };
 const song = (id: string, over: Partial<Song> = {}): Song => ({
@@ -77,5 +77,33 @@ describe('diffRecords (바뀐 것만 계정에 올리기)', () => {
     const changes = diffRecords(before, { ...before, savedSongs: [song('a')] });
     expect(changes.removedSongIds).toEqual(['b']);
     expect(hasChanges(changes)).toBe(true);
+  });
+});
+
+describe('applyChanges (계정 기록에 기기에서 바뀐 것만 얹기)', () => {
+  it('바뀐 프로필·새 기분·새 테스트·이름 바꾼 노래를 얹고, 지운 노래는 뺀다', () => {
+    const remote: Records = {
+      profile: { nickname: '계정닉', birth: null },
+      moods: [mood('2026-11-16')],
+      tests: [result('2026-11-16T10:00:00.000Z')],
+      savedSongs: [song('a', { createdAt: '2026-11-12T00:00:00.000Z' }), song('b'), song('c', { createdAt: '2026-11-11T00:00:00.000Z' })],
+    };
+    const changes = {
+      profile: { nickname: '기기닉', birth: null },
+      moods: [mood('2026-11-17', { mood: 'joy' })],
+      tests: [result('2026-11-17T10:00:00.000Z')],
+      songs: [song('a', { title: '오프라인에서 바꾼 이름', createdAt: '2026-11-12T00:00:00.000Z' })],
+      removedSongIds: ['b'],
+    };
+    const after = applyChanges(remote, changes);
+    expect(after.profile).toEqual({ nickname: '기기닉', birth: null });
+    expect(after.moods.map((m) => `${m.day} ${m.mood}`)).toEqual(['2026-11-17 joy', '2026-11-16 sad']);
+    expect(after.tests.map((t) => t.at)).toEqual(['2026-11-17T10:00:00.000Z', '2026-11-16T10:00:00.000Z']);
+    expect(after.savedSongs.map((s) => `${s.id} ${s.title}`)).toEqual(['a 오프라인에서 바꾼 이름', 'c c 노래']);
+  });
+
+  it('바뀐 게 없으면 계정 기록 그대로', () => {
+    const remote: Records = { ...EMPTY_RECORDS, moods: [mood('2026-11-16')] };
+    expect(applyChanges(remote, diffRecords(remote, remote))).toEqual(remote);
   });
 });

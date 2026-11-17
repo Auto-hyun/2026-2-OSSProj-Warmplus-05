@@ -8,7 +8,17 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createMemoryAdapter } from '@/lib/storage/adapters';
 import { createStore, type AppStore } from '@/lib/storage/store';
 import { EMPTY_RECORDS, pullRecords } from './records';
-import { deleteMyRecords, forgetSyncedRecords, memberIdOf, startRecordSync, SYNCED_USER_KEY, type SyncStorage } from './recordSync';
+import {
+  deleteMyRecords,
+  forgetSyncedRecords,
+  memberIdOf,
+  saveBeforeSignOut,
+  startRecordSync,
+  SyncCancelled,
+  SYNC_BASE_KEY,
+  SYNCED_USER_KEY,
+  type SyncStorage,
+} from './recordSync';
 
 const url = process.env.SUPABASE_TEST_URL;
 const key = process.env.SUPABASE_TEST_KEY;
@@ -121,6 +131,126 @@ describe.skipIf(!url || !key)('기기 ↔ 계정 기록 맞추기', () => {
     sync.stop();
   });
 
+  it('맞추기를 시작하지 못한 동안(오프라인 등) 남긴 기록은 다음에 맞출 때 덮어쓰지 않고 합친다', { timeout: 20_000 }, async () => {
+    const alice = await member();
+    const d = device();
+    const first = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await first.idle();
+    first.stop();
+
+    // 계정 기록을 받아 오지 못했다 (요청이 거절되는 연결로 흉내)
+    const offline = createClient(url!, 'sb_publishable_invalid', { auth: { persistSession: false, autoRefreshToken: false } });
+    await expect(startRecordSync(offline, d.store, alice.id, d.storage)).rejects.toThrow();
+
+    // 그동안 기기에 남긴 기록
+    d.store.recordMood('joy');
+    makeAndSave(d.store, 'task-offline');
+
+    const again = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await again.idle();
+    expect(d.store.getState().moods.map((m) => m.mood)).toEqual(['joy']);
+    expect(savedIds(d.store)).toEqual(['task-offline-1']);
+    const remote = await pullRecords(alice.client);
+    expect(remote.moods.map((m) => m.mood)).toEqual(['joy']);
+    expect(remote.savedSongs.map((s) => s.id)).toEqual(['task-offline-1']);
+    again.stop();
+  });
+
+  it('맞추기가 멈춘 동안 바꾼 닉네임·노래 이름·저장 취소도 다음에 맞출 때 반영된다 (되돌아가거나 되살아나지 않는다)', async () => {
+    const alice = await member();
+    const d = device();
+    d.store.setNickname('앨리스');
+    makeAndSave(d.store, 'task-a');
+    makeAndSave(d.store, 'task-b');
+    const first = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await first.idle();
+    first.stop();
+
+    d.store.setNickname('새닉네임');
+    d.store.renameSong('task-a-1', '오프라인 이름');
+    d.store.setSongSaved('task-b-1', false);
+
+    const again = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await again.idle();
+    expect(d.store.getState().profile.nickname).toBe('새닉네임');
+    expect(savedIds(d.store)).toEqual(['task-a-1']);
+    const remote = await pullRecords(alice.client);
+    expect(remote.profile.nickname).toBe('새닉네임');
+    expect(remote.savedSongs.map((s) => `${s.id} ${s.title}`)).toEqual(['task-a-1 오프라인 이름']);
+    again.stop();
+  });
+
+  it('로그아웃 전에 못 올린 기록을 올려 보고, 다 올라갔으면 true', async () => {
+    const alice = await member();
+    const d = device();
+    const sync = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await sync.idle();
+    d.store.recordMood('joy');
+    expect(await saveBeforeSignOut(d.store, d.storage)).toBe(true);
+    expect((await pullRecords(alice.client)).moods.map((m) => m.mood)).toEqual(['joy']);
+    sync.stop();
+  });
+
+  it('로그아웃돼도 계정에 못 올린 기록은 지우지 않는다 (사용자가 확인하면 지운다)', async () => {
+    const alice = await member();
+    const d = device();
+    const first = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await first.idle();
+    first.stop();
+    d.store.recordMood('joy'); // 맞추기가 멈춘 동안 남긴, 아직 못 올린 기록
+
+    expect(await saveBeforeSignOut(d.store, d.storage)).toBe(false);
+    expect(forgetSyncedRecords(d.store, d.storage)).toBe(false);
+    expect(d.store.getState().moods.map((m) => m.mood)).toEqual(['joy']);
+
+    expect(forgetSyncedRecords(d.store, d.storage, { force: true })).toBe(true);
+    expect(d.store.getState().moods).toEqual([]);
+    expect(d.storage.getItem(SYNCED_USER_KEY)).toBeNull();
+  });
+
+  it('받아 오는 사이 로그아웃되면 기기에 계정 기록을 쓰지 않는다', async () => {
+    const alice = await member();
+    const phone = device();
+    phone.store.recordMood('sad');
+    const sync = await startRecordSync(alice.client, phone.store, alice.id, phone.storage);
+    await sync.idle();
+    sync.stop();
+
+    const shared = device();
+    await expect(startRecordSync(alice.client, shared.store, alice.id, shared.storage, () => false)).rejects.toBeInstanceOf(SyncCancelled);
+    expect(shared.store.getState().moods).toEqual([]);
+    expect(shared.storage.getItem(SYNCED_USER_KEY)).toBeNull();
+  });
+
+  it('다른 회원의 기록이 남은 기기에서 로그인하면 내 계정에 합치지 않는다', async () => {
+    const [alice, bob] = await Promise.all([member(), member()]);
+    const d = device();
+    const syncA = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await syncA.idle();
+    syncA.stop();
+    d.store.recordMood('joy'); // alice가 남긴, 아직 못 올린 기록
+    forgetSyncedRecords(d.store, d.storage); // 강제 로그아웃: 못 올린 기록이라 남겨 둔다
+
+    const syncB = await startRecordSync(bob.client, d.store, bob.id, d.storage);
+    await syncB.idle();
+    expect((await pullRecords(bob.client)).moods).toEqual([]);
+    expect(d.store.getState().moods).toEqual([]);
+    syncB.stop();
+  });
+
+  it('기기에 남긴 기준이 깨져 있어도 맞추기가 멈추지 않는다 (합쳐서 다시 맞춘다)', async () => {
+    const alice = await member();
+    const d = device();
+    d.store.recordMood('joy');
+    d.storage.setItem(SYNCED_USER_KEY, alice.id);
+    d.storage.setItem(SYNC_BASE_KEY, JSON.stringify({ userId: alice.id, records: { moods: 'x' } }));
+
+    const sync = await startRecordSync(alice.client, d.store, alice.id, d.storage);
+    await sync.idle();
+    expect((await pullRecords(alice.client)).moods.map((m) => m.mood)).toEqual(['joy']);
+    sync.stop();
+  });
+
   it('맞추고 있는 동기화가 없어도 내 기록 지우기가 된다', async () => {
     const alice = await member();
     const d = device();
@@ -129,7 +259,7 @@ describe.skipIf(!url || !key)('기기 ↔ 계정 기록 맞추기', () => {
     await sync.idle();
     sync.stop();
 
-    await deleteMyRecords(alice.client, d.store, alice.id);
+    await deleteMyRecords(alice.client, d.store, alice.id, d.storage);
     expect(await pullRecords(alice.client)).toEqual(EMPTY_RECORDS);
     expect(d.store.getState().moods).toEqual([]);
   });

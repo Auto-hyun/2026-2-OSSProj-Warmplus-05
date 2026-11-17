@@ -84,6 +84,13 @@ describe.skipIf(!url || !key)('계정 기록 (Supabase 연결)', () => {
     await expect(pushChanges(guest, data.user!.id, diffRecords(EMPTY_RECORDS, records))).rejects.toThrow();
   });
 
+  it('프로필이 모두 비면 빈 행을 남기지 않고 지운다 (다른 탭이 지워진 기록을 올려도)', async () => {
+    const alice = await member();
+    await pushChanges(alice.client, alice.id, diffRecords(EMPTY_RECORDS, records));
+    await pushChanges(alice.client, alice.id, diffRecords(records, { ...records, profile: { nickname: null, birth: null } }));
+    expect((await alice.client.from('profiles').select('user_id')).data).toEqual([]);
+  });
+
   it('기록 지우기: 계정 기록이 모두 사라진다', async () => {
     const alice = await member();
     await pushChanges(alice.client, alice.id, diffRecords(EMPTY_RECORDS, records));

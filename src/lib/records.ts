@@ -71,6 +71,23 @@ export function hasChanges(c: RecordChanges): boolean {
   return c.profile !== null || c.moods.length + c.tests.length + c.songs.length + c.removedSongIds.length > 0;
 }
 
+/** 계정 기록에 기기에서 바뀐 것을 얹는다 (다시 맞출 때: 기기에서 바꾼 것이 이기고, 기기에서 지운 노래는 뺀다) */
+export function applyChanges(records: Records, c: RecordChanges): Records {
+  const moods = new Map(records.moods.map((m) => [m.day, m]));
+  for (const m of c.moods) moods.set(m.day, m);
+  const tests = new Map(records.tests.map((t) => [testKey(t), t]));
+  for (const t of c.tests) tests.set(testKey(t), t);
+  const removed = new Set(c.removedSongIds);
+  const songs = new Map(records.savedSongs.filter((s) => !removed.has(s.id)).map((s) => [s.id, s]));
+  for (const s of c.songs) songs.set(s.id, s);
+  return {
+    profile: c.profile ?? records.profile,
+    moods: [...moods.values()].sort(newestFirst((m) => m.day)),
+    tests: [...tests.values()].sort(newestFirst((t) => t.at)),
+    savedSongs: [...songs.values()].sort(newestFirst((s) => s.createdAt)),
+  };
+}
+
 // ── Supabase 행 ↔ 기록 ──
 
 type ProfileRow = { nickname: string | null; birth_date: string | null; birth_time: string | null };
@@ -137,14 +154,18 @@ export async function pullRecords(supabase: SupabaseClient): Promise<Records> {
 export async function pushChanges(supabase: SupabaseClient, userId: string, c: RecordChanges): Promise<void> {
   const jobs: PromiseLike<{ error: unknown }>[] = [];
   if (c.profile) {
+    // 닉네임·생일이 모두 비면 빈 행을 남기지 않고 지운다
+    const empty = c.profile.nickname === null && c.profile.birth === null;
     jobs.push(
-      supabase.from('profiles').upsert({
-        user_id: userId,
-        nickname: c.profile.nickname,
-        birth_date: c.profile.birth?.date ?? null,
-        birth_time: c.profile.birth?.time ?? null,
-        updated_at: new Date().toISOString(),
-      }),
+      empty
+        ? supabase.from('profiles').delete().eq('user_id', userId)
+        : supabase.from('profiles').upsert({
+            user_id: userId,
+            nickname: c.profile.nickname,
+            birth_date: c.profile.birth?.date ?? null,
+            birth_time: c.profile.birth?.time ?? null,
+            updated_at: new Date().toISOString(),
+          }),
     );
   }
   if (c.moods.length > 0) {

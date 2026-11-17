@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { track } from '@/lib/events';
-import { forgetSyncedRecords, memberIdOf, startRecordSync, type RecordSync as Sync } from '@/lib/recordSync';
+import { forgetSyncedRecords, memberIdOf, startRecordSync, SyncCancelled, type RecordSync as Sync } from '@/lib/recordSync';
 import { getBrowserStore } from '@/lib/storage/useApp';
 import { getSupabase } from '@/lib/supabase/browser';
 
@@ -23,25 +23,30 @@ export function RecordSync() {
     const store = getBrowserStore();
     let sync: Sync | null = null;
     let current: string | null = null;
+    /** 로그인 상태가 바뀔 때마다 늘린다. 시작하던 맞추기가 끝났을 때 아직 같은 차례인지 본다 */
+    let generation = 0;
     let disposed = false;
 
     async function follow(memberId: string | null) {
       if (memberId === current) return;
+      const mine = ++generation;
+      const stillMine = () => !disposed && generation === mine;
       sync?.stop();
       sync = null;
       current = memberId;
       if (!memberId) return;
       try {
-        const started = await startRecordSync(supabase!, store, memberId, storage);
-        if (disposed || current !== memberId) {
+        const started = await startRecordSync(supabase!, store, memberId, storage, stillMine);
+        if (!stillMine()) {
           started.stop();
           return;
         }
         sync = started;
         if (started.firstHere) track('login', { provider: 'kakao' });
       } catch (error) {
+        if (error instanceof SyncCancelled) return;
         console.error('[sync] 계정 기록을 맞추지 못했어요', error);
-        current = null; // 다음 로그인 알림(토큰 갱신 등) 때 다시 해 본다
+        if (stillMine()) current = null; // 다음 로그인 알림(토큰 갱신 등) 때 다시 해 본다
       }
     }
 

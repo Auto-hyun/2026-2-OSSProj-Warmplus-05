@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from '@/components/ui/Toast';
-import { deleteMyRecords, forgetSyncedRecords } from '@/lib/recordSync';
+import { deleteMyRecords, forgetSyncedRecords, saveBeforeSignOut } from '@/lib/recordSync';
 import { getBrowserStore } from '@/lib/storage/useApp';
 import { accountOf, finishKakaoLogin, signOutHere, startKakaoLogin, type Account, type KakaoReturn } from '@/lib/supabase/kakao';
 import { useSupabase } from '@/lib/supabase/useSupabase';
@@ -63,8 +63,18 @@ export function AccountCard() {
     if (!window.confirm('로그아웃하면 이 기기에 있던 마음 기록·테스트 결과·저장한 노래가 지워져요. 계정에는 남아 있어 다시 로그인하면 돌아와요.')) return;
     setBusy(true);
     try {
+      const store = getBrowserStore();
+      // 못 올린 기록을 먼저 올려 본다. 그래도 남아 있으면 사라진다고 한 번 더 묻는다
+      const saved = await saveBeforeSignOut(store, window.localStorage);
+      const sure =
+        saved ||
+        window.confirm('아직 계정에 올리지 못한 기록이 있어요. 지금 로그아웃하면 그 기록은 사라져요. 그래도 로그아웃할까요? (인터넷에 연결된 뒤 다시 하면 함께 올라가요)');
+      if (!sure) {
+        setBusy(false);
+        return;
+      }
       await signOutHere(supabase);
-      forgetSyncedRecords(getBrowserStore(), window.localStorage);
+      forgetSyncedRecords(store, window.localStorage, { force: true });
       window.location.reload(); // 내가 쓴 글처럼 계정에 딸린 목록을 새로 불러온다
     } catch {
       toast('로그아웃하지 못했어요.', { tone: 'error' });
@@ -83,7 +93,7 @@ export function AccountCard() {
       const { data } = await supabase.auth.getSession();
       const userId = data.session?.user.id;
       if (!userId) throw new Error('로그인이 풀렸어요.');
-      await deleteMyRecords(supabase, getBrowserStore(), userId);
+      await deleteMyRecords(supabase, getBrowserStore(), userId, window.localStorage);
       toast('기록을 모두 지웠어요.');
     } catch {
       toast('기록을 지우지 못했어요. 잠시 뒤에 다시 해 주세요.', { tone: 'error' });

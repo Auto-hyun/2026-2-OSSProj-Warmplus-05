@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { deleteMyRecords, forgetSyncedRecords } from '@/lib/recordSync';
+import { deleteMyRecords, forgetSyncedRecords, saveBeforeSignOut } from '@/lib/recordSync';
 import { AccountCard } from './AccountCard';
 
 const supabase = vi.hoisted(() => ({ current: null as unknown }));
 vi.mock('@/lib/supabase/useSupabase', () => ({ useSupabase: () => supabase.current }));
-vi.mock('@/lib/recordSync', () => ({ deleteMyRecords: vi.fn(async () => {}), forgetSyncedRecords: vi.fn() }));
+vi.mock('@/lib/recordSync', () => ({ deleteMyRecords: vi.fn(async () => {}), forgetSyncedRecords: vi.fn(), saveBeforeSignOut: vi.fn(async () => true) }));
 
 const KAKAO_USER = { id: 'u1', is_anonymous: false, identities: [{ provider: 'kakao', identity_data: { name: '포근한 하루' } }] };
 
@@ -63,7 +63,7 @@ describe('AccountCard', () => {
     render(<AccountCard />);
 
     await userEvent.click(await screen.findByRole('button', { name: '내 기록 지우기' }));
-    await waitFor(() => expect(deleteMyRecords).toHaveBeenCalledWith(supabase.current, expect.anything(), 'u1'));
+    await waitFor(() => expect(deleteMyRecords).toHaveBeenCalledWith(supabase.current, expect.anything(), 'u1', expect.anything()));
     expect(screen.getByRole('link', { name: '개인정보 처리방침' })).toHaveAttribute('href', '/privacy');
     confirm.mockRestore();
   });
@@ -88,10 +88,26 @@ describe('AccountCard', () => {
     render(<AccountCard />);
 
     await userEvent.click(await screen.findByRole('button', { name: '로그아웃' }));
-    await waitFor(() => expect(forgetSyncedRecords).toHaveBeenCalled());
+    await waitFor(() => expect(forgetSyncedRecords).toHaveBeenCalledWith(expect.anything(), expect.anything(), { force: true }));
+    expect(saveBeforeSignOut).toHaveBeenCalled();
     expect(auth.signOut).toHaveBeenCalled();
     expect(window.location.reload).toHaveBeenCalled();
     vi.unstubAllGlobals();
+    confirm.mockRestore();
+  });
+
+  it('카카오 회원: 계정에 못 올린 기록이 있으면 경고하고, 그만두면 로그아웃하지 않는다', async () => {
+    const auth = fakeSession(KAKAO_USER);
+    vi.mocked(saveBeforeSignOut).mockResolvedValueOnce(false);
+    vi.mocked(forgetSyncedRecords).mockClear();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(true).mockReturnValueOnce(false);
+    render(<AccountCard />);
+
+    await userEvent.click(await screen.findByRole('button', { name: '로그아웃' }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledTimes(2));
+    expect(confirm.mock.calls[1][0]).toMatch('아직 계정에 올리지 못한 기록');
+    expect(auth.signOut).not.toHaveBeenCalled();
+    expect(forgetSyncedRecords).not.toHaveBeenCalled();
     confirm.mockRestore();
   });
 
