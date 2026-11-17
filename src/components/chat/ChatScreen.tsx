@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { AppBar } from '@/components/layout/AppBar';
 import { Omok } from '@/components/omok/Omok';
 import { Button } from '@/components/ui/Button';
+import { track } from '@/lib/events';
 import { buildChatContext } from '@/lib/omok/context';
 import { getBrowserStore, useApp, useStore } from '@/lib/storage/useApp';
 import { cn } from '@/lib/cn';
@@ -33,6 +34,7 @@ export function ChatScreen() {
     // 맥락은 내 말을 넣기 전 기록으로 만든다 (내 말은 text로 따로 보낸다)
     const context = buildChatContext(getBrowserStore().getState());
     store.addChatMessage({ role: 'user', text: trimmed });
+    track('chat_send');
     setText('');
     setSending(true);
     try {

@@ -8,6 +8,7 @@ import { CaretRightIcon, MusicNotesSimpleIcon } from '@phosphor-icons/react';
 import { AppBar } from '@/components/layout/AppBar';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { toast } from '@/components/ui/Toast';
+import { track } from '@/lib/events';
 import { startSong } from '@/lib/music/client';
 import { songRequestFor } from '@/lib/music/prompt';
 import type { SongSource } from '@/lib/music/types';
@@ -42,6 +43,7 @@ export function CreateScreen() {
     try {
       const { taskId, mode } = await startSong(source);
       store.addPending({ taskId, title: req.title, source, mode });
+      track('song_create', { kind: source.kind });
     } catch (error) {
       toast(error instanceof Error ? error.message : '작곡을 맡기지 못했어요.', { tone: 'error' });
     } finally {

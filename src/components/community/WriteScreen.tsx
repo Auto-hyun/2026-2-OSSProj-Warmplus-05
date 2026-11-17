@@ -9,6 +9,7 @@ import { OmokTalk } from '@/components/omok/OmokTalk';
 import { toast } from '@/components/ui/Toast';
 import { TOPICS } from '@/data/topics';
 import { CONTENT_MAX, createPost } from '@/lib/community';
+import { track } from '@/lib/events';
 import { pickableSongs } from '@/lib/songs';
 import { NICKNAME_MAX } from '@/lib/storage/store';
 import { useApp, useStore } from '@/lib/storage/useApp';
@@ -59,6 +60,7 @@ export function WriteScreen() {
         content: content.trim(),
         bgm: bgm && { title: bgm.title, url: bgm.audioUrl },
       });
+      track('post_create', { board: 'plaza', bgm: Boolean(bgm) });
       toast('이야기를 올렸어요!');
       router.replace('/community');
     } catch (error) {

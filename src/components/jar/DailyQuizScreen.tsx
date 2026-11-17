@@ -6,6 +6,7 @@ import { AppBar } from '@/components/layout/AppBar';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { dailyResult, quizForDay } from '@/lib/daily';
 import { todayKey } from '@/lib/date';
+import { track } from '@/lib/events';
 import { useApp, useStore } from '@/lib/storage/useApp';
 
 /** /today: 오늘의 마음 날씨 테스트 3문항 → 결과 화면. 결과는 오늘의 구슬로 유리병에 들어간다 (뼈대 UI) */
@@ -60,6 +61,7 @@ export function DailyQuizScreen() {
     }
     const result_ = dailyResult(next);
     store.recordMood(result_, { source: 'daily', testId: quiz.id });
+    track('mood_record', { mood: result_, source: 'daily' });
     setResult(result_);
   }
 

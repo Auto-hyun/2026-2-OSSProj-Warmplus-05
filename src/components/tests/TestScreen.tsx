@@ -8,6 +8,7 @@ import { ArrowLeftIcon } from '@phosphor-icons/react';
 import type { MoodFamily } from '@/data/music';
 import { getTest, getTestResult, type PsychTest, type TestResult } from '@/data/tests';
 import { cn } from '@/lib/cn';
+import { track } from '@/lib/events';
 import { resultFor } from '@/lib/tests';
 import { useStore } from '@/lib/storage/useApp';
 
@@ -116,6 +117,7 @@ function Runner({ test }: { test: PsychTest }) {
     }
     const result = resultFor(test, all);
     store.saveTestResult(test.id, result.id, result.mood);
+    track('test_complete', { testId: test.id, resultId: result.id, ...(result.mood ? { mood: result.mood } : {}) });
     router.replace(`/tests/${test.id}?result=${result.id}`);
   }
 
