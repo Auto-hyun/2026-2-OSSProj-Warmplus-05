@@ -32,7 +32,7 @@ function matches(post: Post, filter: Filter): boolean {
   return true;
 }
 
-/** 게시판 탭: 이야기 광장(Supabase, 노래 BGM 글) / 자유게시판(샘플, 이 기기에 저장). 주소 ?board=free */
+/** 게시판 탭: 이야기 광장(Supabase, 노래 BGM 글) / 자유게시판(Supabase, 제목·내용 글). 주소 ?board=free */
 const BOARDS = [
   { value: 'plaza', label: '이야기 광장', href: '/community' },
   { value: 'free', label: '자유게시판', href: '/community?board=free' },

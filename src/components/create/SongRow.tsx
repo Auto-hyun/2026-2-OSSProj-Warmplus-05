@@ -6,6 +6,7 @@ import { PlayButton } from '@/components/audio/PlayButton';
 import { toast } from '@/components/ui/Toast';
 import { cn } from '@/lib/cn';
 import { formatDotDate } from '@/lib/date';
+import { track } from '@/lib/events';
 import { sourceLabel } from '@/lib/songs';
 import { SONG_TITLE_MAX } from '@/lib/storage/store';
 import type { Song } from '@/lib/storage/types';
@@ -32,6 +33,7 @@ export function SongRow({ song }: { song: Song }) {
 
   function toggleSaved() {
     store.setSongSaved(song.id, !song.saved);
+    if (!song.saved) track('song_save');
     toast(song.saved ? '저장을 취소했어요.' : '마이페이지 내 노래에 저장했어요!');
   }
 

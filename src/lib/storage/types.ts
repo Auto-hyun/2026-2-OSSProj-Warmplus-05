@@ -53,7 +53,18 @@ export type PendingSong = {
 /** 노래 만들기 탭에 보여 줄 마지막 작곡 결과 (완성된 곡 또는 실패 이유). 확인하면 지운다 */
 export type ComposeOutcome = { songIds: string[] } | { error: string };
 
-/** 이 기기(브라우저)에만 저장하는 것들. 커뮤니티 글은 Supabase에 */
+/** 카카오로 로그인한 사람의 계정(Supabase)에도 저장하는 기록. 기기 상태(AppState)의 일부 */
+export type Records = {
+  profile: { nickname: string | null; birth: Birth | null };
+  /** 최근 날이 앞 */
+  moods: MoodEntry[];
+  /** 최근 것이 앞 */
+  tests: TestRecord[];
+  /** 마이페이지에 저장한 노래만, 최근 것이 앞 */
+  savedSongs: Song[];
+};
+
+/** 이 기기(브라우저)에 저장하는 것들. 커뮤니티 글은 Supabase에, 카카오 회원의 기록(Records)은 계정에도 */
 export type AppState = {
   version: 1;
   profile: {

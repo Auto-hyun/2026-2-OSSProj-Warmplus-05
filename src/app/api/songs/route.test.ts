@@ -25,7 +25,18 @@ describe('샘플 곡 모드 (Suno 설정이 없을 때)', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.mode).toBe('sample');
-    expect(body.taskId).toMatch(/^sample-sad-\d{13}$/);
+    // 슬픔 감정의 곡 2개를 골라 작업 번호에 담는다
+    expect(body.taskId).toMatch(/^sample-sad-\d+\.sad-\d+-\d{13}$/);
+  });
+
+  it('이미 가진 곡은 빼고 고른다', async () => {
+    const owned = ['/samples/sad-1.mp3', '/samples/sad-2.mp3', '/samples/sad-3.mp3'];
+    for (let i = 0; i < 20; i++) {
+      const { taskId } = await (await post({ source: { kind: 'words', words: ['sadness'] }, exclude: owned })).json();
+      const [, a, b] = /^sample-(sad-\d+)\.(sad-\d+)-\d{13}$/.exec(taskId)!;
+      expect(owned).not.toContain(`/samples/${a}.mp3`);
+      expect(owned).not.toContain(`/samples/${b}.mp3`);
+    }
   });
 
   it('잘못된 재료는 400', async () => {
@@ -34,7 +45,7 @@ describe('샘플 곡 모드 (Suno 설정이 없을 때)', () => {
     }
   });
 
-  it('몇 초 동안은 작곡 중, 그 뒤엔 같은 갈래의 샘플 곡 2개', async () => {
+  it('몇 초 동안은 작곡 중, 그 뒤엔 결과 감정(기쁨)의 샘플 곡 2개', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-10-18T10:00:00Z'));
     const { taskId } = await (await post({ source: { kind: 'test', testId: 'mind-sound', resultId: 'a' } })).json();
@@ -55,16 +66,15 @@ describe('샘플 곡 모드 (Suno 설정이 없을 때)', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-10-18T10:00:00Z'));
     const { taskId } = await (await post({ source: { kind: 'words', words: ['stuffy', 'anxiety', 'stress'] } })).json();
-    expect(taskId).toMatch(/^sample-unease-\d{13}$/);
 
     vi.setSystemTime(Date.now() + SAMPLE_DELAY_MS);
     const done = await (await get(taskId)).json();
-    expect(done.tracks.map((t: { audioUrl: string }) => t.audioUrl)).toEqual(['/samples/unease-1.mp3', '/samples/unease-2.mp3']);
+    expect(done.tracks.map((t: { audioUrl: string }) => t.audioUrl).sort()).toEqual(['/samples/unease-1.mp3', '/samples/unease-2.mp3']);
   });
 
-  it('같은 스트레스 갈래라도 다른 조합이면 갈래 샘플 곡', async () => {
+  it('불안·스트레스만 고르면 전용 곡이 아니라 불안 감정의 곡', async () => {
     const { taskId } = await (await post({ source: { kind: 'words', words: ['anxiety', 'stress'] } })).json();
-    expect(taskId).toMatch(/^sample-stress-\d{13}$/);
+    expect(taskId).toMatch(/^sample-stress-\d+\.stress-\d+-\d{13}$/);
   });
 
   it('Suno를 쓰지 않을 때 모르는 작업 번호는 404', async () => {

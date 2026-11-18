@@ -1,42 +1,41 @@
-'use client';
-
-import { useSyncExternalStore } from 'react';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { currentUserId, ensureUserId } from '@/lib/supabase/browser';
 
 /**
- * 자유게시판 (샘플): 서버 없이 이 기기(localStorage)에만 저장한다.
- * 다른 사람 글은 아래 SAMPLE_POSTS로 흉내 낸다. 나중에 Supabase 게시판으로 바꿀 자리
+ * 자유게시판: 제목·내용 글 (Supabase free_posts). 누구나 읽고, 로그인 없이 익명 계정으로도 쓴다.
+ * 권한은 Supabase RLS가 지킨다: 내 계정으로만 쓰고, 내 글만 지운다
  */
-
 export const FREE_TITLE_MAX = 40;
 export const FREE_CONTENT_MAX = 1000;
-export const FREE_BOARD_KEY = 'omok:free-board:v1';
-
-export type FreePost = {
-  id: string;
-  nickname: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  /** 같이 들을 내 노래 (노래 만들기에서 넘어오면 붙는다) */
-  bgm: FreeBgm | null;
-  /** 내가 이 기기에서 쓴 글 (지울 수 있다) */
-  mine: boolean;
-};
+export const FREE_PAGE_SIZE = 20;
 
 export type FreeBgm = { title: string; url: string };
 
+export type FreePost = {
+  id: string;
+  userId: string;
+  nickname: string;
+  title: string;
+  content: string;
+  /** 같이 들을 노래 (노래 만들기에서 넘어오면 붙는다) */
+  bgm: FreeBgm | null;
+  createdAt: string;
+};
+
 export type NewFreePost = { nickname: string; title: string; content: string; bgm?: FreeBgm | null };
 
-function isBgm(v: unknown): v is FreeBgm {
-  return typeof v === 'object' && v !== null && typeof (v as FreeBgm).title === 'string' && typeof (v as FreeBgm).url === 'string';
-}
+type FreePostRow = {
+  id: string;
+  user_id: string;
+  nickname: string;
+  title: string;
+  content: string;
+  bgm_title: string | null;
+  bgm_url: string | null;
+  created_at: string;
+};
 
-/** 처음부터 보이는 샘플 글. 시간은 지금 기준 몇 분 전 */
-const SAMPLE_POSTS: { minutesAgo: number; nickname: string; title: string; content: string }[] = [
-  { minutesAgo: 25, nickname: '포근한 하루', title: '오늘 날씨 너무 좋지 않아요?', content: '점심 먹고 잠깐 산책했는데 햇살이 정말 따뜻했어요.\n다들 잠깐이라도 바깥 공기 마셔 보세요 🌿' },
-  { minutesAgo: 180, nickname: '하늘좋아', title: '잠 안 올 때 듣는 노래 추천해 주세요', content: '요즘 자꾸 늦게 잠들어서요. 잔잔한 노래 있으면 알려 주세요!' },
-  { minutesAgo: 60 * 26, nickname: '말랑구름', title: '시험 끝났어요', content: '한 달 동안 준비한 시험이 드디어 끝났어요. 결과는 모르겠지만 오늘은 그냥 푹 쉬려고요.' },
-];
+const COLUMNS = 'id, user_id, nickname, title, content, bgm_title, bgm_url, created_at';
 
 const length = (s: string) => Array.from(s.trim()).length;
 
@@ -50,105 +49,57 @@ export function validateFreePost(post: NewFreePost): string | null {
   return null;
 }
 
-/** 저장된 문자열을 내 글 목록으로. 깨졌거나 모양이 다르면 빈 목록 */
-export function parseFreePosts(raw: string | null): FreePost[] {
-  if (!raw) return [];
-  try {
-    const data: unknown = JSON.parse(raw);
-    if (!Array.isArray(data)) return [];
-    return data
-      .filter(
-        (p): p is FreePost =>
-          typeof p === 'object' &&
-          p !== null &&
-          typeof p.id === 'string' &&
-          typeof p.nickname === 'string' &&
-          typeof p.title === 'string' &&
-          typeof p.content === 'string' &&
-          typeof p.createdAt === 'string',
-      )
-      .map((p) => ({ ...p, bgm: isBgm(p.bgm) ? { title: p.bgm.title, url: p.bgm.url } : null, mine: true }));
-  } catch {
-    return [];
-  }
-}
-
-/** 내 글과 샘플 글을 합쳐 최신 글부터 */
-export function mergeWithSamples(mine: FreePost[], now: Date = new Date()): FreePost[] {
-  const samples = SAMPLE_POSTS.map((s, i) => ({
-    id: `sample-${i}`,
-    nickname: s.nickname,
-    title: s.title,
-    content: s.content,
-    createdAt: new Date(now.getTime() - s.minutesAgo * 60_000).toISOString(),
-    bgm: null,
-    mine: false,
-  }));
-  return [...mine, ...samples].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}
-
-// ── 브라우저 저장소 (useSyncExternalStore로 구독) ──
-
-const listeners = new Set<() => void>();
-let cache: { raw: string | null; posts: FreePost[] } | null = null;
-
-function readRaw(): string | null {
-  try {
-    return localStorage.getItem(FREE_BOARD_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function snapshot(): FreePost[] {
-  const raw = readRaw();
-  if (!cache || cache.raw !== raw) cache = { raw, posts: mergeWithSamples(parseFreePosts(raw)) };
-  return cache.posts;
-}
-
-function writeMine(posts: FreePost[]) {
-  try {
-    const stored = posts.map((p) => ({ id: p.id, nickname: p.nickname, title: p.title, content: p.content, createdAt: p.createdAt, bgm: p.bgm }));
-    localStorage.setItem(FREE_BOARD_KEY, JSON.stringify(stored));
-  } catch {
-    throw new Error('이 브라우저에서는 글을 저장할 수 없어요.');
-  }
-  listeners.forEach((l) => l());
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener);
-  const onStorage = (e: StorageEvent) => e.key === FREE_BOARD_KEY && listener();
-  window.addEventListener('storage', onStorage);
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener('storage', onStorage);
+function toFreePost(row: FreePostRow): FreePost {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    nickname: row.nickname,
+    title: row.title,
+    content: row.content,
+    bgm: row.bgm_title && row.bgm_url ? { title: row.bgm_title, url: row.bgm_url } : null,
+    createdAt: row.created_at,
   };
 }
 
-/** 자유게시판 글 목록 (최신 글부터). 서버 렌더·하이드레이션 전에는 undefined */
-export function useFreePosts(): FreePost[] | undefined {
-  return useSyncExternalStore(subscribe, snapshot, () => undefined);
+/** 최신 글부터 FREE_PAGE_SIZE개. before를 주면 그보다 오래된 글 */
+export async function listFreePosts(supabase: SupabaseClient, before?: string): Promise<FreePost[]> {
+  let query = supabase.from('free_posts').select(COLUMNS).order('created_at', { ascending: false }).limit(FREE_PAGE_SIZE);
+  if (before) query = query.lt('created_at', before);
+  const { data, error } = await query;
+  if (error) throw new Error('글을 불러오지 못했어요.');
+  return (data as FreePostRow[]).map(toFreePost);
 }
 
-/** 새 글을 이 기기에 저장한다. 올릴 수 없으면 이유를 담아 throw */
-export function addFreePost(post: NewFreePost): FreePost {
+/** 내 계정(익명 또는 카카오)으로 쓴 글. 계정이 없으면 빈 목록 */
+export async function listMyFreePosts(supabase: SupabaseClient): Promise<FreePost[]> {
+  const userId = await currentUserId(supabase);
+  if (!userId) return [];
+  const { data, error } = await supabase.from('free_posts').select(COLUMNS).eq('user_id', userId).order('created_at', { ascending: false });
+  if (error) throw new Error('내가 쓴 글을 불러오지 못했어요.');
+  return (data as FreePostRow[]).map(toFreePost);
+}
+
+/** 글 올리기. 올릴 수 없는 글이면 서버에 보내기 전에 이유를 담아 throw */
+export async function createFreePost(supabase: SupabaseClient, post: NewFreePost): Promise<FreePost> {
   const problem = validateFreePost(post);
   if (problem) throw new Error(problem);
-  const created: FreePost = {
-    id: crypto.randomUUID(),
-    nickname: post.nickname.trim(),
-    title: post.title.trim(),
-    content: post.content.trim(),
-    createdAt: new Date().toISOString(),
-    bgm: post.bgm ?? null,
-    mine: true,
-  };
-  writeMine([created, ...parseFreePosts(readRaw())]);
-  return created;
+  await ensureUserId(supabase);
+  const { data, error } = await supabase
+    .from('free_posts')
+    .insert({
+      nickname: post.nickname.trim(),
+      title: post.title.trim(),
+      content: post.content.trim(),
+      bgm_title: post.bgm?.title ?? null,
+      bgm_url: post.bgm?.url ?? null,
+    })
+    .select(COLUMNS)
+    .single();
+  if (error) throw new Error('글을 올리지 못했어요. 잠시 뒤에 다시 해 주세요.');
+  return toFreePost(data as FreePostRow);
 }
 
-/** 내가 쓴 글을 지운다 */
-export function removeFreePost(id: string) {
-  writeMine(parseFreePosts(readRaw()).filter((p) => p.id !== id));
+export async function deleteFreePost(supabase: SupabaseClient, id: string): Promise<void> {
+  const { error } = await supabase.from('free_posts').delete().eq('id', id);
+  if (error) throw new Error('글을 지우지 못했어요.');
 }

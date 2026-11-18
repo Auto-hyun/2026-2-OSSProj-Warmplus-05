@@ -8,6 +8,7 @@ import { Button, ButtonLink } from '@/components/ui/Button';
 import { toast } from '@/components/ui/Toast';
 import { dailyResult, quizForDay } from '@/lib/daily';
 import { todayKey } from '@/lib/date';
+import { track } from '@/lib/events';
 import { startSong } from '@/lib/music/client';
 import { songRequestFor } from '@/lib/music/prompt';
 import { useApp, useStore } from '@/lib/storage/useApp';
@@ -43,8 +44,13 @@ export function DailyQuizScreen() {
     if (!request) return;
     setBusy(true);
     try {
-      const { taskId, mode } = await startSong(source);
+      // 노래 공방과 같게: 이미 가진 곡은 피해서 고르고, 이용 기록을 남긴다
+      const { taskId, mode } = await startSong(
+        source,
+        store.getState().songs.map((s) => s.audioUrl),
+      );
       store.addPending({ taskId, title: request.title, source, mode });
+      track('song_create', { kind: source.kind });
       router.push('/create');
     } catch (error) {
       toast(error instanceof Error ? error.message : '작곡을 맡기지 못했어요.', { tone: 'error' });
@@ -97,6 +103,7 @@ export function DailyQuizScreen() {
     }
     const result_ = dailyResult(next);
     store.recordMood(result_, { source: 'daily', testId: quiz.id });
+    track('mood_record', { mood: result_, source: 'daily' });
     setResult(result_);
   }
 

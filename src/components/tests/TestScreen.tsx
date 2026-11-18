@@ -8,6 +8,7 @@ import { ArrowLeftIcon } from '@phosphor-icons/react';
 import { getTest, getTestResult, type PsychTest, type TestResult } from '@/data/tests';
 import { FAMILY_FRIEND } from '@/components/ui/FriendAvatar';
 import { cn } from '@/lib/cn';
+import { track } from '@/lib/events';
 import { resultFor } from '@/lib/tests';
 import { useStore } from '@/lib/storage/useApp';
 
@@ -116,6 +117,7 @@ function Runner({ test }: { test: PsychTest }) {
       // 문항별로 고른 답도 저장한다: 오목이가 대화에서 나를 떠올리는 재료
       const answers = all.map((choice, qi) => ({ q: test.questions[qi].text, a: test.questions[qi].choices[choice].label }));
       store.saveTestResult(test.id, result.id, result.mood, answers);
+      track('test_complete', { testId: test.id, resultId: result.id, ...(result.mood ? { mood: result.mood } : {}) });
       router.replace(`/tests/${test.id}?result=${result.id}`);
     }, 160);
   }

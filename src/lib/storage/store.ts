@@ -3,7 +3,7 @@ import { todayKey } from '@/lib/date';
 import type { Birth } from '@/lib/fortune';
 import type { Track } from '@/lib/music/types';
 import { createDefaultState } from './adapters';
-import type { AppState, ChatMessage, MoodEntry, OmokNote, PendingSong, StorageAdapter, TestAnswer } from './types';
+import type { AppState, ChatMessage, MoodEntry, OmokNote, PendingSong, Records, StorageAdapter, TestAnswer } from './types';
 
 export const NICKNAME_MAX = 12;
 export const SONG_TITLE_MAX = 30;
@@ -36,6 +36,10 @@ export type AppStore = {
   renameSong(id: string, title: string): { ok: boolean };
   /** 마이페이지에 저장하기 / 저장 취소 */
   setSongSaved(id: string, saved: boolean): void;
+  /** 카카오 회원: 계정과 맞춘 기록으로 바꿔 넣는다. 대화, 저장하기 전 곡, 작곡 중·작곡 결과는 그대로 */
+  replaceRecords(records: Records): void;
+  /** 카카오 회원 로그아웃·기록 지우기: 계정에 저장되는 기록을 이 기기에서 지운다 */
+  clearRecords(): void;
 };
 
 export function createStore(adapter: StorageAdapter, clock: () => Date = () => new Date()): AppStore {
@@ -186,6 +190,33 @@ export function createStore(adapter: StorageAdapter, clock: () => Date = () => n
 
     setSongSaved(id, saved) {
       set({ ...state, songs: state.songs.map((s) => (s.id === id ? { ...s, saved } : s)) });
+    },
+
+    replaceRecords(records) {
+      const savedIds = new Set(records.savedSongs.map((s) => s.id));
+      const unsaved = state.songs.filter((s) => !s.saved && !savedIds.has(s.id));
+      // 테스트에서 고른 답은 계정에 올리지 않고 이 기기에만 둔다 (대화처럼): 같은 테스트 기록(테스트·시각)에 다시 붙인다
+      const answers = new Map(state.tests.map((t) => [`${t.testId}|${t.at}`, t.answers]));
+      set({
+        ...state,
+        profile: { ...state.profile, nickname: records.profile.nickname, birth: records.profile.birth },
+        moods: records.moods,
+        tests: records.tests.map((t) => {
+          const kept = t.answers ?? answers.get(`${t.testId}|${t.at}`);
+          return kept ? { ...t, answers: kept } : t;
+        }),
+        songs: [...records.savedSongs, ...unsaved].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      });
+    },
+
+    clearRecords() {
+      set({
+        ...state,
+        profile: { ...state.profile, nickname: null, birth: null },
+        moods: [],
+        tests: [],
+        songs: state.songs.filter((s) => !s.saved),
+      });
     },
   };
 }

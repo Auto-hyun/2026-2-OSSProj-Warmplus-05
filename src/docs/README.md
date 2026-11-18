@@ -21,6 +21,7 @@
 | `mood-jar.md` | 유리병·오늘의 테스트 구조 | 수아, 동현 |
 | `omok-chat.md` | 오목이 대화 구조, 기억, 위기 감지 | 모두 |
 | `kakao-login.md` | 카카오 로그인 구조, 카카오·Supabase 설정 순서, 자주 나는 오류 | 모두 |
+| `data.md` | 서버(Supabase)에 저장하는 데이터, 이용 기록 목록, KPI 뽑는 SQL | 모두 |
 | `mockups/home-2.5d.html` | 오목이 집 홈 시안 (브라우저로 열기) | 수아 |
 | `tests/mind-weather.md` | 마음 날씨 심리테스트 문항 초안 | 동현 |
 | `song-pool-draft.md` | 감정×필요 곡 목록 초안 (Suno 웹 제작용) | 곡 제작 담당 |

@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import './globals.css';
+import { PageViews } from '@/components/analytics/PageViews';
 import { AudioProvider } from '@/components/audio/AudioProvider';
 import { SongWatcher } from '@/components/music/SongWatcher';
+import { RecordSync } from '@/components/sync/RecordSync';
 import { Toaster } from '@/components/ui/Toast';
 
 export const metadata: Metadata = {
@@ -25,6 +27,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           {children}
           {/* 작곡을 맡겨 둔 곡이 있으면 어느 화면에 있든 완성됐는지 확인한다 */}
           <SongWatcher />
+          {/* 이용 기록(KPI): 화면을 열 때마다 */}
+          <PageViews />
+          {/* 카카오 회원이면 기기 기록을 계정과 맞춘다 */}
+          <RecordSync />
           <Toaster />
         </AudioProvider>
       </body>

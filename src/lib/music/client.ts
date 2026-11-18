@@ -5,12 +5,12 @@ async function readError(res: Response, fallback: string): Promise<string> {
   return typeof body?.error === 'string' ? body.error : fallback;
 }
 
-/** 작곡 맡기기 (브라우저 → /api/songs) */
-export async function startSong(source: SongSource): Promise<{ taskId: string; mode: MusicMode }> {
+/** 작곡 맡기기 (브라우저 → /api/songs). owned: 이미 가진 곡 주소 (같은 곡을 다시 받지 않게) */
+export async function startSong(source: SongSource, owned: string[] = []): Promise<{ taskId: string; mode: MusicMode }> {
   const res = await fetch('/api/songs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ source }),
+    body: JSON.stringify({ source, exclude: owned }),
   });
   if (!res.ok) throw new Error(await readError(res, '작곡을 맡기지 못했어요. 잠시 뒤에 다시 해 주세요.'));
   return res.json();
