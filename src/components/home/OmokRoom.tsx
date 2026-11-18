@@ -9,6 +9,7 @@ import { getTest, getTestResult } from '@/data/tests';
 import { FortuneNote } from '@/components/home/FortuneNote';
 import { DailyMoodQuiz } from '@/components/jar/DailyMoodQuiz';
 import { MoodJar } from '@/components/jar/MoodJar';
+import { VillageGuide } from '@/components/layout/VillageGuide';
 import { JarBanner } from '@/components/me/JarBanner';
 import { MusicButton } from '@/components/ui/RoundButton';
 import { todayKey } from '@/lib/date';
@@ -25,37 +26,45 @@ const y = (px: number) => `${(px / ROOM_H) * 100}%`;
 /** 지금 채우는 유리병: 맨 아래 선반 오른쪽 끝에 올린다 (바닥 = 선반 윗면 y 542) */
 const JAR = { left: 688, top: 422, width: 86, height: 120 };
 
-/** 선반 위 구슬 자리 (중심 x, 선반별 중심 y·반지름). 구슬이 선반 윗면(237·387·542)에 얹히도록. 앞(아래) 선반이 가장 최근 기록 */
+/** 선반 위 구슬 자리 (중심 x, 선반별 중심 y·반지름). 구슬이 선반 윗면(237·387·542)에 얹히도록. 아래 5개 → 가운데 6개 → 위 3개 = 14일 */
 const SHELVES = [
-  { cy: 522, r: 20, xs: [168, 222, 276, 330, 384, 438, 492, 546, 600] },
-  { cy: 367, r: 20, xs: [172, 226, 280, 334, 388, 442, 496, 550, 604, 658, 712, 766] },
-  { cy: 217, r: 20, xs: [266, 320, 374, 428, 482, 536, 590, 644, 698] },
+  { cy: 522, r: 20, xs: [204, 324, 444, 564] },
+  { cy: 367, r: 20, xs: [200, 308, 416, 524, 632, 740] },
+  { cy: 217, r: 20, xs: [302, 422, 542, 662] },
 ];
 const SPHERES = SHELVES.flatMap((s) => s.xs.map((cx) => ({ cx, cy: s.cy, r: s.r })));
 
 /**
- * 말풍선 멘트: 기록(마음날씨·테스트·노래·생일)이 있으면 그걸 떠올리는 멘트가 섞여 돌아가고,
- * 전부 대화창으로 이어진다. 날짜 + 대화 수로 고르니 날마다·대화할 때마다 바뀐다
+ * 말풍선: 오목이가 오늘의 다음 할 일을 안내한다 (누르면 그곳으로 이동).
+ * 처음 온 사람에겐 대화를 먼저 소개하고, 오늘 할 일(마음날씨 → 노래)을 다 하면 기록을 떠올리는 멘트가 돌아간다
  */
-function bubbleLine(state: AppState): { main: string; sub: string } {
-  const chatted = state.chat.messages.length > 0;
-  const lines = [{ main: '오늘은 어떤 마음으로 왔어?', sub: chatted ? '또 왔구나, 이어서 이야기해 볼까?' : '천천히 이야기해도 괜찮아' }];
+function bubbleLine(state: AppState): { main: string; sub: string; href: string } {
+  const today = todayKey();
 
-  const today = state.moods.find((m) => m.day === todayKey());
-  if (today) lines.push({ main: `오늘 마음이 ${getMood(today.mood).label}이구나`, sub: '무슨 일이 있었는지 들려줄래?' });
+  // ① 아직 오목이와 이야기해 본 적 없음: 대화부터 소개
+  if (state.chat.messages.length === 0)
+    return { main: '처음 보는 얼굴이다! 난 오목이야', sub: '심심하면 언제든 말 걸어 줘', href: '/chat' };
 
+  // ② 오늘 마음을 아직 기록 안 함: 마음날씨로
+  const todayMood = state.moods.find((m) => m.day === today);
+  if (!todayMood) return { main: '오늘 하루 어땠어?', sub: '마음날씨 들려주러 가기 ›', href: '/today' };
+
+  // ③ 기록은 했는데 오늘 노래는 아직: 공방으로
+  const songToday = state.pending.length > 0 || state.songs.some((s) => todayKey(new Date(s.createdAt)) === today);
+  if (!songToday)
+    return { main: `오늘 ${getMood(todayMood.mood).label}이었구나`, sub: '이 마음, 노래로 만들러 가기 ›', href: '/create' };
+
+  // ④ 오늘 할 일 끝: 기록을 떠올리는 멘트 로테이션 (날짜 + 대화 수로 골라 날마다 바뀜)
+  const lines = [{ main: '오늘도 마음 들려줘서 고마워', sub: '더 하고 싶은 얘기 있으면 와' }];
   const latestTest = state.tests[0];
   const test = latestTest && getTest(latestTest.testId);
   const result = test && latestTest && getTestResult(test, latestTest.resultId);
-  if (result) lines.push({ main: `테스트에서 ‘${result.name}’ 나왔었잖아`, sub: '요즘도 그런지 들어와서 얘기해 줘' });
-
+  if (result) lines.push({ main: `저번에 ‘${result.name}’ 나왔던 거 기억나?`, sub: '요즘은 어떤지 궁금해' });
   const song = state.songs.find((s) => s.saved) ?? state.songs[0];
-  if (song) lines.push({ main: `「${song.title}」 요즘도 들어?`, sub: '새 이야기가 생겼으면 들려줘' });
-
-  if (state.profile.birth) lines.push({ main: '오늘 오하아사는 확인했어?', sub: '쪽지 보고 와서 나랑 얘기하자' });
-
-  const dayNumber = Number(todayKey().replaceAll('-', ''));
-  return lines[(dayNumber + state.chat.messages.length) % lines.length];
+  if (song) lines.push({ main: `「${song.title}」 오늘도 들었어?`, sub: '나는 가끔 흥얼거려' });
+  if (state.profile.birth) lines.push({ main: '오하아사 쪽지 봤어?', sub: '왼쪽 쪽지에 오늘 운세가 들어 있어' });
+  const dayNumber = Number(today.replaceAll('-', ''));
+  return { ...lines[(dayNumber + state.chat.messages.length) % lines.length], href: '/chat' };
 }
 
 /**
@@ -72,18 +81,18 @@ export function OmokRoom() {
 
   return (
     <section aria-label="오목이 집" className="relative -mb-44 h-dvh overflow-hidden bg-[#d99c67]">
-      {/* 상단: 가운데 오늘의 마음날씨, 오른쪽 내 기록(음표) 버튼. 방 그림 위에 겹친다 */}
+      {/* 상단: 왼쪽 마을 안내(?), 가운데 오늘의 마음날씨, 오른쪽 내 기록(음표). 처음 온 사람에겐 안내가 한 번 저절로 열린다 */}
       <header className="absolute inset-x-0 top-0 z-20 grid grid-cols-[48px_1fr_48px] items-center gap-2 px-5 pt-[calc(env(safe-area-inset-top)+12px)]">
         <h1 className="sr-only">오목이 집</h1>
-        <span aria-hidden />
+        <VillageGuide auto />
         <div className="mx-auto w-full max-w-[280px] min-w-0">
           <DailyMoodQuiz />
         </div>
         <MusicButton className="justify-self-end" />
       </header>
 
-      {/* 왼쪽 위 (마음날씨와 같은 줄): 오하아사 쪽지 (누르면 팝업) */}
-      <FortuneNote className="absolute top-[calc(env(safe-area-inset-top)+14px)] left-5 z-20 w-[48px]" />
+      {/* ? 버튼 아래: 오하아사 쪽지 (누르면 팝업) */}
+      <FortuneNote className="absolute top-[calc(env(safe-area-inset-top)+72px)] left-4 z-20 w-[64px]" />
 
       {/* 방 그림: 화면 맨 위부터 탭 바(76px) 위까지 덮는다. 가운데 기준으로 좌우·바닥이 잘릴 수 있다 */}
       <div
@@ -92,7 +101,7 @@ export function OmokRoom() {
       >
         <Image src="/village/room-shelves.webp" alt="" fill preload sizes="480px" className="-z-10 object-cover" />
 
-        {/* 기억 선반: 다 찬 병들의 구슬이 선반 위에 놓인다 */}
+        {/* 기억 선반: 지금 모으는 구슬이 하루 하나씩 선반 위에 놓인다 (14일차에 병으로 옮겨 담기) */}
         {shelf?.map((entry, i) => {
           const { cx, cy, r } = SPHERES[i];
           const color = getMood(entry.mood).color;
@@ -123,7 +132,7 @@ export function OmokRoom() {
           className="absolute transition-transform active:scale-95"
           style={{ left: x(JAR.left), top: y(JAR.top), width: x(JAR.width), height: y(JAR.height) }}
         >
-          <MoodJar caption={false} className="h-full [filter:drop-shadow(0_4px_6px_rgba(80,55,20,0.18))]" />
+          <MoodJar caption={false} empty className="h-full [filter:drop-shadow(0_4px_6px_rgba(80,55,20,0.18))]" />
         </button>
         {jar && (
           <p
@@ -147,8 +156,8 @@ export function OmokRoom() {
           />
         </Link>
         <Link
-          href="/chat"
-          aria-label="오목이와 대화하기"
+          href={bubble?.href ?? '/chat'}
+          aria-label={bubble?.main ?? '오목이와 대화하기'}
           className="absolute left-[8%] w-max max-w-[72%] transition-transform active:scale-[0.98]"
           style={{ top: y(578) }}
         >

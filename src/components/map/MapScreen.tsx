@@ -49,19 +49,40 @@ export function MapScreen() {
         <h1 className="text-center text-[28px] font-bold text-cocoa-900">마음 마을</h1>
         <button
           type="button"
-          aria-label={profileOpen ? '내 정보 닫기' : '내 정보 보기'}
-          aria-expanded={profileOpen}
-          onClick={() => setProfileOpen(!profileOpen)}
+          aria-label="내 정보 보기"
+          onClick={() => setProfileOpen(true)}
           className={cn(ROUND, 'justify-self-end')}
         >
-          {profileOpen ? <XIcon size={24} aria-hidden /> : <UserIcon size={24} aria-hidden />}
+          <UserIcon size={24} aria-hidden />
         </button>
       </header>
 
+      {/* 내 정보 팝업: 지도를 밀지 않고 위에 뜬다 (홈 유리병 팝업과 같은 방식) */}
       {profileOpen && (
-        <div className="space-y-3 px-4 pb-3">
-          <ProfileCard />
-          <AccountCard />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="내 정보"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-5"
+          onClick={() => setProfileOpen(false)}
+        >
+          <div className="max-h-[85dvh] w-full max-w-[400px] overflow-y-auto rounded-3xl bg-bg p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-1 pb-2">
+              <h2 className="text-lg font-bold text-cocoa-900">내 정보</h2>
+              <button
+                type="button"
+                aria-label="닫기"
+                onClick={() => setProfileOpen(false)}
+                className="grid size-9 place-items-center rounded-xl text-taupe-500 active:bg-black/5"
+              >
+                <XIcon size={20} aria-hidden />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <ProfileCard />
+              <AccountCard />
+            </div>
+          </div>
         </div>
       )}
 

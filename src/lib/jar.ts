@@ -2,7 +2,7 @@ import { MOODS, type MoodId } from '@/data/moods';
 import type { MoodEntry } from '@/lib/storage/types';
 
 /** 병 하나에 들어가는 구슬 수 (하루 1개, 3주) */
-export const JAR_SIZE = 21;
+export const JAR_SIZE = 14;
 
 export type Jar = {
   /** 1부터 */
@@ -48,11 +48,9 @@ export function fullJars(moods: MoodEntry[]): Jar[] {
     .reverse();
 }
 
-/** 홈 기억 선반에 올릴 구슬: 다 찬 병들의 기록, 최근 것부터 slots개 */
+/** 홈 기억 선반에 올릴 구슬: 지금 모으는 병의 기록이 하루 하나씩 자리를 지키며 쌓인다 (오래된 것부터). 14일차에 병으로 옮겨 담는 연출은 나중에 */
 export function shelfMoods(moods: MoodEntry[], slots: number): MoodEntry[] {
-  return fullJars(moods)
-    .flatMap((j) => [...j.entries].reverse())
-    .slice(0, slots);
+  return currentJar(moods).entries.slice(0, slots);
 }
 
 export function summarize(jar: Jar): JarSummary {
