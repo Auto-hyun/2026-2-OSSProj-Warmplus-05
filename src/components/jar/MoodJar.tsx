@@ -23,15 +23,17 @@ type Props = {
   caption?: boolean;
   /** 병 그림 없이 구슬만 그린다. 배경 그림 속 병 안쪽에 겹쳐 놓을 때 쓴다 */
   bare?: boolean;
+  /** 구슬 없이 빈 병만. 모으는 구슬은 선반에 쌓이고, 14일차에 병으로 옮겨 담는다 (연출은 나중에) */
+  empty?: boolean;
 };
 
 /** 감정 유리병 (코르크 뚜껑·리본). 기록한 날마다 감정 색 구슬이 하나씩 쌓인다 */
-export function MoodJar({ className, style, caption = true, bare = false }: Props) {
+export function MoodJar({ className, style, caption = true, bare = false, empty = false }: Props) {
   const jar = useApp((s) => currentJar(s.moods));
   if (!jar) return null;
   const today = todayKey();
 
-  const marbles = jar.entries.map((entry, i) => {
+  const marbles = (empty ? [] : jar.entries).map((entry, i) => {
     const { cx, cy } = SLOTS[i];
     const color = getMood(entry.mood).color;
     const fresh = entry.day === today;

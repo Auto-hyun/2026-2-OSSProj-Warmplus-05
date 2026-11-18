@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { FAMILY_FRIEND } from '@/components/ui/FriendAvatar';
 import { particle } from '@/lib/josa';
+import { songRequestFor } from '@/lib/music/prompt';
 import type { PendingSong } from '@/lib/storage/types';
 
 const NOTES = [
@@ -19,6 +21,8 @@ function elapsedLabel(ms: number): string {
 
 /** 작곡을 기다리는 화면. 완성 확인은 SongWatcher가 한다 */
 export function Composing({ pending }: { pending: PendingSong }) {
+  // 만드는 노래의 감정 갈래에 맞는 친구가 작곡한다
+  const friend = FAMILY_FRIEND[songRequestFor(pending.source)?.family ?? 'happy'];
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -39,12 +43,12 @@ export function Composing({ pending }: { pending: PendingSong }) {
           </span>
         ))}
         <Image
-          src="/village/composer/guitar.webp"
+          src={`/village/friends-full/${friend}.webp`}
           alt=""
-          width={170}
-          height={170}
+          width={136}
+          height={161}
           preload
-          className="size-[136px] origin-bottom motion-safe:animate-[omok-sway_1.6s_ease-in-out_infinite]"
+          className="h-[136px] w-auto origin-bottom motion-safe:animate-[omok-sway_1.6s_ease-in-out_infinite]"
         />
       </div>
       <p role="status" className="mt-3 text-base font-bold text-cocoa-900">

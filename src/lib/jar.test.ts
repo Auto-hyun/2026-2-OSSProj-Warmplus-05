@@ -14,11 +14,11 @@ describe('유리병', () => {
     expect(splitJars([])).toEqual([{ number: 1, entries: [], full: false }]);
   });
 
-  it('21개씩 날짜 순으로 나누고, 다 차면 새 병이 생긴다', () => {
+  it('JAR_SIZE개씩 날짜 순으로 나누고, 다 차면 새 병이 생긴다', () => {
     const moods = days(Array(JAR_SIZE).fill('joy'));
     const jars = splitJars(moods);
     expect(jars.map((j) => [j.number, j.entries.length, j.full])).toEqual([
-      [1, 21, true],
+      [1, JAR_SIZE, true],
       [2, 0, false],
     ]);
     expect(jars[0].entries[0].day).toBe('2026-10-01');
@@ -30,10 +30,11 @@ describe('유리병', () => {
     expect(fullJars(moods).map((j) => j.number)).toEqual([1]);
   });
 
-  it('기억 선반: 다 찬 병의 구슬만, 최근 것부터', () => {
+  it('기억 선반: 지금 모으는 병의 구슬이 하루 하나씩 자리를 지키며 쌓인다', () => {
     const moods = days([...Array(JAR_SIZE - 1).fill('sad'), 'angry', 'joy']);
-    expect(shelfMoods(moods, 3).map((e) => e.mood)).toEqual(['angry', 'sad', 'sad']);
-    expect(shelfMoods(days(['joy']), 3)).toEqual([]);
+    expect(shelfMoods(moods, 3).map((e) => e.mood)).toEqual(['joy']);
+    expect(shelfMoods(days(['calm', 'joy', 'sad']), 2).map((e) => e.mood)).toEqual(['calm', 'joy']);
+    expect(shelfMoods([], 3)).toEqual([]);
   });
 
   it('요약: 감정별 개수 많은 순, 같으면 MOODS 순서', () => {
