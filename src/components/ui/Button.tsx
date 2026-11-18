@@ -5,9 +5,9 @@ import { cn } from '@/lib/cn';
 type Variant = 'primary' | 'secondary' | 'ghost';
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-yellow-500 text-ink-900 active:brightness-95 disabled:bg-line disabled:text-ink-400',
-  secondary: 'border border-line bg-surface text-ink-900 active:bg-black/5 disabled:text-ink-400',
-  ghost: 'text-ink-600 active:bg-black/5 disabled:text-ink-400',
+  primary: 'bg-leaf-600 text-white active:brightness-95 disabled:bg-cream-line disabled:text-taupe-500',
+  secondary: 'border border-cream-line bg-surface text-cocoa-900 active:bg-black/5 disabled:text-taupe-500',
+  ghost: 'text-taupe-500 active:bg-black/5 disabled:text-taupe-500',
 };
 
 const BASE = 'inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-5 text-[15px] font-bold transition-colors';

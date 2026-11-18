@@ -74,7 +74,7 @@ export function WriteScreen() {
       type="button"
       onClick={submit}
       disabled={!valid || sending || !supabase}
-      className="h-10 rounded-full bg-yellow-500 px-4 text-sm font-bold text-ink-900 active:brightness-95 disabled:bg-line disabled:text-ink-400"
+      className="h-10 rounded-full bg-leaf-600 px-4 text-sm font-bold text-white active:brightness-95 disabled:bg-line disabled:text-ink-400"
     >
       {sending ? '올리는 중…' : '올리기'}
     </button>
@@ -136,9 +136,9 @@ export function WriteScreen() {
           )}
 
           {accepted && (
-            <p className="flex items-start gap-2 rounded-xl bg-yellow-100 px-3 py-2 text-sm">
+            <p className="flex items-start gap-2 rounded-xl bg-cream px-3 py-2 text-sm">
               <span className="min-w-0 flex-1">
-                <span className="font-semibold text-brown-600">오목이의 질문</span> {topic}
+                <span className="font-semibold text-leaf-600">오목이의 질문</span> {topic}
               </span>
               <button type="button" onClick={() => setAccepted(false)} aria-label="주제 빼기" className="shrink-0 text-ink-400">
                 <XIcon size={16} aria-hidden />
@@ -168,7 +168,7 @@ export function WriteScreen() {
           ) : (
             <p className="rounded-2xl border border-dashed border-line px-4 py-4 text-sm text-ink-600">
               아직 만든 노래가 없어요.{' '}
-              <Link href="/create" className="font-semibold text-brown-600 underline underline-offset-2">
+              <Link href="/create" className="font-semibold text-leaf-600 underline underline-offset-2">
                 노래 만들러 가기
               </Link>
             </p>

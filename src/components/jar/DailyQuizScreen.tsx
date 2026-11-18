@@ -67,10 +67,10 @@ export function DailyQuizScreen() {
           <p className="text-6xl" aria-hidden>
             {mood.emoji}
           </p>
-          <h2 className="mt-4 text-2xl font-bold">{mood.weather}</h2>
-          <p className="mt-1 text-ink-600">오늘 마음은 {mood.label}에 가까워</p>
-          <span className="mt-6 size-10 rounded-full border border-line" style={{ background: mood.color }} aria-hidden />
-          <p className="mt-2 text-sm text-ink-600">이 구슬이 유리병에 들어갔어. 내일은 새 테스트가 기다려!</p>
+          <h2 className="mt-4 text-2xl font-bold text-cocoa-900">{mood.weather}</h2>
+          <p className="mt-1 text-taupe-500">오늘 마음은 {mood.label}에 가까워</p>
+          <span className="mt-6 size-10 rounded-full border border-cream-line" style={{ background: mood.color }} aria-hidden />
+          <p className="mt-2 text-sm text-taupe-500">이 구슬이 유리병에 들어갔어. 내일은 새 테스트가 기다려!</p>
           <Button onClick={() => composeToday(result)} disabled={busy} className="mt-8 w-full">
             {busy ? '오목이에게 부탁하는 중…' : '오늘의 마음으로 노래 만들기'}
           </Button>
@@ -111,20 +111,20 @@ export function DailyQuizScreen() {
     <>
       <AppBar title="오늘의 마음 날씨" backHref="/" />
       <div className="px-4 pt-2">
-        <p className="text-sm text-ink-600">
+        <p className="text-sm text-taupe-500">
           {quiz.title} · {index + 1}/{quiz.questions.length}
         </p>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuemin={0} aria-valuemax={quiz.questions.length} aria-valuenow={index + 1} aria-label="진행">
-          <div className="h-full rounded-full bg-yellow-500 transition-all" style={{ width: `${((index + 1) / quiz.questions.length) * 100}%` }} />
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-cream-line" role="progressbar" aria-valuemin={0} aria-valuemax={quiz.questions.length} aria-valuenow={index + 1} aria-label="진행">
+          <div className="h-full rounded-full bg-leaf-600 transition-all" style={{ width: `${((index + 1) / quiz.questions.length) * 100}%` }} />
         </div>
-        <h2 className="mt-6 text-xl font-bold">{question.text}</h2>
+        <h2 className="mt-6 text-xl font-bold text-cocoa-900">{question.text}</h2>
         <div className="mt-5 grid gap-2.5">
           {question.choices.map((c) => (
             <button
               key={c.label}
               type="button"
               onClick={() => pick(c.mood)}
-              className="rounded-2xl border border-line bg-surface px-4 py-3.5 text-left text-[15px] active:bg-yellow-100"
+              className="rounded-2xl border border-cream-line bg-surface px-4 py-3.5 text-left text-[15px] font-semibold text-cocoa-900 active:border-leaf-600 active:bg-leaf-600/10"
             >
               {c.label}
             </button>

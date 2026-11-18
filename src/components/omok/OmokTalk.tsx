@@ -28,7 +28,7 @@ export function OmokTalk({ line, replies = [], pose = 'hello', size = 'lg', heig
       {replies.map((reply) => {
         const style = cn(
           'inline-flex h-10 items-center rounded-full px-4 text-sm font-semibold transition-colors',
-          reply.primary ? 'bg-yellow-500 text-ink-900 active:brightness-95' : 'border border-line bg-surface text-ink-900 active:bg-yellow-100',
+          reply.primary ? 'bg-leaf-600 text-white active:brightness-95' : 'border border-cream-line bg-surface text-cocoa-900 active:bg-leaf-600/10',
         );
         return reply.href ? (
           <Link key={reply.label} href={reply.href} onClick={reply.onSelect} className={style}>
