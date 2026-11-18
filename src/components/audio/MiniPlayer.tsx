@@ -28,7 +28,7 @@ export function MiniPlayer({ above }: { above: 'tabs' | 'bottom' }) {
             {[0, 0.2, 0.4].map((delay) => (
               <span
                 key={delay}
-                className="h-full w-1 origin-bottom animate-[omok-bar_0.9s_ease-in-out_infinite] rounded-full bg-brown-600"
+                className="h-full w-1 origin-bottom animate-[omok-bar_0.9s_ease-in-out_infinite] rounded-full bg-leaf-600"
                 style={{ animationDelay: `${delay}s` }}
               />
             ))}

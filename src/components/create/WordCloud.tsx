@@ -149,7 +149,7 @@ export function WordCloud({ words, picked, onToggle }: Props) {
               onClick={() => onToggle(w.id)}
               className={cn(
                 'absolute grid place-items-center rounded-full text-[15px] font-semibold transition-colors',
-                on ? 'bg-ink-900 text-white shadow-md' : 'border border-black/5 text-ink-900',
+                on ? 'bg-leaf-600 text-white shadow-md' : 'border border-black/5 text-cocoa-900',
               )}
               style={{
                 left: points[i].x,

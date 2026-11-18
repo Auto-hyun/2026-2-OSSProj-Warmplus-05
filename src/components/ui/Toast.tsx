@@ -47,7 +47,7 @@ export function Toaster() {
         >
           <span className="min-w-0 flex-1">{item.message}</span>
           {item.action && (
-            <Link href={item.action.href} className="shrink-0 font-bold text-yellow-500">
+            <Link href={item.action.href} className="shrink-0 font-bold text-[#b9d9a6]">
               {item.action.label}
             </Link>
           )}

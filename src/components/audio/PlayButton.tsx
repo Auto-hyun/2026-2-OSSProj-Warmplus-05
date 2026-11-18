@@ -7,20 +7,19 @@ import { useAudio, type PlayableTrack } from './AudioProvider';
 type Props = {
   track: PlayableTrack;
   size?: 'sm' | 'md';
-  /** yellow: 기본 노란 버튼, leaf: 마을 화면 초록 버튼, soft: 연한 초록 바탕, line: 테두리만 있는 버튼 */
-  tone?: 'yellow' | 'leaf' | 'soft' | 'line';
+  /** leaf: 기본 초록 버튼, soft: 연한 초록 바탕, line: 테두리만 있는 버튼 */
+  tone?: 'leaf' | 'soft' | 'line';
   className?: string;
 };
 
 const TONES = {
-  yellow: 'bg-yellow-500 text-ink-900 active:brightness-95',
   leaf: 'bg-leaf-600 text-white active:brightness-95',
   soft: 'bg-leaf-600/15 text-leaf-600 active:bg-leaf-600/25',
   line: 'border border-cream-line bg-surface text-cocoa-900 active:bg-black/5',
 };
 
 /** 동그란 재생/일시정지 버튼. 이 곡이 재생 중이면 일시정지 모양 */
-export function PlayButton({ track, size = 'md', tone = 'yellow', className }: Props) {
+export function PlayButton({ track, size = 'md', tone = 'leaf', className }: Props) {
   const { current, playing, toggle } = useAudio();
   const active = current?.url === track.url && playing;
   const px = size === 'sm' ? 36 : 44;

@@ -173,7 +173,7 @@ export function ChatScreen() {
               <p
                 className={cn(
                   'max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap',
-                  m.role === 'user' ? 'rounded-tr-md bg-yellow-100' : 'rounded-tl-md border border-line bg-surface',
+                  m.role === 'user' ? 'rounded-tr-md bg-leaf-600/15' : 'rounded-tl-md border border-line bg-surface',
                 )}
               >
                 {m.text}
