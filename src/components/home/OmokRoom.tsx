@@ -85,7 +85,7 @@ export function OmokRoom() {
     // 휴대폰 한 화면 높이(h-dvh)에 고정하고 문서 스크롤을 막는다 (-mb-44: 탭 레이아웃의 아래 여백 상쇄)
     <section aria-label="오목이 집" className="relative -mb-44 h-dvh overflow-hidden bg-[#d99c67]">
       {/* 상단: 왼쪽 마을 안내(?), 가운데 오늘의 마음날씨, 오른쪽 내 기록(음표). 처음 온 사람에겐 안내가 한 번 저절로 열린다 */}
-      <header className="absolute inset-x-0 top-0 z-20 grid grid-cols-[48px_1fr_48px] items-center gap-2 px-5 pt-[calc(env(safe-area-inset-top)+12px)]">
+      <header className="absolute inset-x-0 top-0 z-20 grid grid-cols-[64px_1fr_64px] items-center gap-2 px-4 pt-[calc(env(safe-area-inset-top)+10px)]">
         <h1 className="sr-only">오목이 집</h1>
         <VillageGuide auto />
         <div className="mx-auto w-full max-w-[280px] min-w-0">
@@ -95,7 +95,7 @@ export function OmokRoom() {
       </header>
 
       {/* ? 버튼 아래: 오하아사 쪽지 (누르면 팝업) */}
-      <FortuneNote className="absolute top-[calc(env(safe-area-inset-top)+72px)] left-4 z-20 w-[64px]" />
+      <FortuneNote className="absolute top-[calc(env(safe-area-inset-top)+76px)] left-4 z-20 w-[60px]" />
 
       {/* 방 그림: 화면 맨 위부터 탭 바(76px) 위까지 덮는다. 가운데 기준으로 좌우·바닥이 잘릴 수 있다 */}
       <div
