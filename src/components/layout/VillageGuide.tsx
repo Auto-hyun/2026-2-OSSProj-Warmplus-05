@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { QuestionIcon, XIcon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
 import { ROUND } from '@/components/ui/RoundButton';
@@ -22,18 +22,26 @@ const STEPS = [
  * 마음 마을 안내: 홈 왼쪽 위 ? 버튼으로 열어 보는 사용 안내.
  * auto면 처음 온 사람에게 한 번만 저절로도 열린다
  */
-export function VillageGuide({ auto = false, className }: { auto?: boolean; className?: string }) {
-  const [open, setOpen] = useState(false);
+const noopSubscribe = () => () => {};
 
-  useEffect(() => {
-    if (!auto) return;
-    try {
-      if (!localStorage.getItem(SEEN_KEY)) setOpen(true);
-    } catch {}
-  }, [auto]);
+/** 처음 온 사람인지 (localStorage를 못 쓰면 본 것으로 친다. 서버 렌더와 첫 화면을 맞추기 위해 서버에선 false) */
+function firstVisitInStorage(): boolean {
+  try {
+    return !localStorage.getItem(SEEN_KEY);
+  } catch {
+    return false;
+  }
+}
+
+export function VillageGuide({ auto = false, className }: { auto?: boolean; className?: string }) {
+  const [manual, setManual] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const firstVisit = useSyncExternalStore(noopSubscribe, firstVisitInStorage, () => false);
+  const open = manual || (auto && firstVisit && !dismissed);
 
   function close() {
-    setOpen(false);
+    setManual(false);
+    setDismissed(true);
     try {
       localStorage.setItem(SEEN_KEY, '1');
     } catch {}
@@ -41,7 +49,7 @@ export function VillageGuide({ auto = false, className }: { auto?: boolean; clas
 
   return (
     <>
-      <button type="button" aria-label="마음 마을 안내" onClick={() => setOpen(true)} className={cn(ROUND, className)}>
+      <button type="button" aria-label="마음 마을 안내" onClick={() => setManual(true)} className={cn(ROUND, className)}>
         <QuestionIcon size={24} aria-hidden />
       </button>
       {open && (
