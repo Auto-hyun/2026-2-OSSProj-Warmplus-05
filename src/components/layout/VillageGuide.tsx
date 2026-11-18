@@ -2,9 +2,9 @@
 
 import Image from 'next/image';
 import { useState, useSyncExternalStore } from 'react';
-import { QuestionIcon, XIcon } from '@phosphor-icons/react';
+import { XIcon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/Button';
-import { ROUND } from '@/components/ui/RoundButton';
+import { ART_BUTTON, ArtIcon } from '@/components/ui/RoundButton';
 import { cn } from '@/lib/cn';
 
 const SEEN_KEY = 'village-guide-seen';
@@ -49,8 +49,8 @@ export function VillageGuide({ auto = false, className }: { auto?: boolean; clas
 
   return (
     <>
-      <button type="button" aria-label="마음 마을 안내" onClick={() => setManual(true)} className={cn(ROUND, className)}>
-        <QuestionIcon size={24} aria-hidden />
+      <button type="button" aria-label="마음 마을 안내" onClick={() => setManual(true)} className={cn(ART_BUTTON, 'size-14', className)}>
+        <ArtIcon name="guide" />
       </button>
       {open && (
         <div

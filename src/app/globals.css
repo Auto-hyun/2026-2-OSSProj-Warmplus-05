@@ -48,6 +48,24 @@ body {
   }
 }
 
+/* 홈 → 마음 마을 도착: 제목이 위에서 살짝 내려오며 나타남 */
+@keyframes village-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* 마음 마을 도착: 건물이 아주 살짝 통통 (바닥 기준) */
+@keyframes place-bob {
+  40% {
+    transform: translateY(-4%) scale(1.03, 0.98);
+  }
+  70% {
+    transform: translateY(0.8%) scale(0.99, 1.01);
+  }
+}
+
 /* 오목이: 숨쉬기 (발은 바닥에 붙인 채) */
 @keyframes omok-breathe {
   0%,
