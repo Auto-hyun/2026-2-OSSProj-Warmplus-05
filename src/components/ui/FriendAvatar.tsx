@@ -1,9 +1,13 @@
 import Image from 'next/image';
+import type { MoodFamily } from '@/data/music';
 import { cn } from '@/lib/cn';
 
 /** public/village/friends에 있는 감정 친구 얼굴 (동그랗게 잘린 그림) */
 export const FRIENDS = ['green', 'yellow', 'purple', 'blue', 'pink'] as const;
 export type Friend = (typeof FRIENDS)[number];
+
+/** 노래 감정 갈래 → 그 노래를 맡는 감정 친구 (friends-full 그림). 악기 든 그림을 받으면 여기 경로만 바꾸면 된다 */
+export const FAMILY_FRIEND: Record<MoodFamily, Friend> = { happy: 'yellow', calm: 'green', sad: 'blue', stress: 'purple' };
 
 /** 친구 그림 뒤에 까는 옅은 바탕색 */
 export const FRIEND_TINTS: Record<Friend, string> = { green: '#e6f1e1', yellow: '#fbf0d6', purple: '#f1e6f6', blue: '#e3ecf8', pink: '#fbe6e6' };

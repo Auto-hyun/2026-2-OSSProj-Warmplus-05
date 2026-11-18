@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { OmokTalk } from '@/components/omok/OmokTalk';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { FAMILY_FRIEND } from '@/components/ui/FriendAvatar';
+import { songRequestFor } from '@/lib/music/prompt';
 import type { ComposeOutcome } from '@/lib/storage/types';
 import { useApp, useStore } from '@/lib/storage/useApp';
 import { SongRow } from './SongRow';
@@ -26,6 +28,8 @@ export function Outcome({ outcome }: { outcome: ComposeOutcome }) {
   const songs = outcome.songIds.map((id) => allSongs.find((s) => s.id === id)).filter((s) => s !== undefined);
   const sample = songs.some((s) => s.mode === 'sample');
   const temporary = songs.some((s) => s.temporary);
+  // 노래를 만든 감정 갈래의 친구가 완성을 알린다
+  const friend = FAMILY_FRIEND[(songs[0] && songRequestFor(songs[0].source)?.family) ?? 'happy'];
 
   return (
     <div className="space-y-4">
@@ -37,7 +41,7 @@ export function Outcome({ outcome }: { outcome: ComposeOutcome }) {
           짠! 노래가 완성됐어 ♪
           <span aria-hidden className="absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 border-r border-b border-cream-line bg-surface" />
         </p>
-        <Image src="/village/composer/record.webp" alt="레코드판을 안은 보라 친구" width={173} height={163} preload className="mt-3 h-[136px] w-auto" />
+        <Image src={`/village/friends-full/${friend}.webp`} alt="노래를 만든 감정 친구" width={136} height={161} preload className="mt-3 h-[136px] w-auto" />
       </div>
       <p className="text-center text-[13px] leading-relaxed text-taupe-500">
         마음에 드는 노래를 <b className="text-leaf-600">저장</b>하면 마이페이지 내 노래에 남아요.

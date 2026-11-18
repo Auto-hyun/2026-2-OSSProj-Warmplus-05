@@ -5,19 +5,11 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useRef, useState, type ReactNode } from 'react';
 import { ArrowLeftIcon } from '@phosphor-icons/react';
-import type { MoodFamily } from '@/data/music';
 import { getTest, getTestResult, type PsychTest, type TestResult } from '@/data/tests';
+import { FAMILY_FRIEND } from '@/components/ui/FriendAvatar';
 import { cn } from '@/lib/cn';
 import { resultFor } from '@/lib/tests';
 import { useStore } from '@/lib/storage/useApp';
-
-/** 결과 화면의 감정 친구: 이 유형으로 만드는 노래 갈래에 맞춘다 */
-const RESULT_FRIEND: Record<MoodFamily, string> = {
-  happy: 'yellow',
-  calm: 'green',
-  sad: 'blue',
-  stress: 'purple',
-};
 
 /** 시안의 베이지 (보조 버튼·칩·진행 막대 바탕) */
 const BEIGE = 'bg-[#f3ebdd]';
@@ -216,7 +208,7 @@ function ResultView({ test, result }: { test: PsychTest; result: TestResult }) {
       >
         <div className="flex flex-col items-center text-center">
           <Image
-            src={`/village/friends-full/${RESULT_FRIEND[result.music.family]}.webp`}
+            src={`/village/friends-full/${FAMILY_FRIEND[result.music.family]}.webp`}
             alt=""
             width={136}
             height={161}
