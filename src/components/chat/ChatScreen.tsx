@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
+import { ChatTeardropDotsIcon, PhoneCallIcon } from '@phosphor-icons/react';
 import { AppBar } from '@/components/layout/AppBar';
 import { Omok } from '@/components/omok/Omok';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +12,29 @@ import { cn } from '@/lib/cn';
 const MAX_LENGTH = 500;
 /** 대화가 이만큼 쌓일 때마다 오목이 메모 갱신 */
 const NOTE_EVERY = 20;
+
+/** 위기 표현 뒤에 붙는 따뜻한 안내 카드: 자살예방 상담 109 (24시간), 전화가 부담스러우면 문자로 */
+function CrisisCard() {
+  const button =
+    'flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full text-sm font-bold transition-transform active:scale-[0.98]';
+  return (
+    <div className="mt-2 w-[80%] rounded-2xl rounded-tl-md bg-cream px-4 py-3.5 shadow-[0_4px_14px_rgba(75,46,32,0.08)]">
+      <p className="text-sm font-bold text-cocoa-900">지금 바로 이야기 들어 줄 사람들이야</p>
+      <p className="mt-0.5 text-[13px] text-taupe-500">자살예방 상담 109 · 24시간 · 비밀 보장</p>
+      <div className="mt-3 flex gap-2">
+        <a href="tel:109" className={cn(button, 'bg-leaf-600 text-white')}>
+          <PhoneCallIcon size={17} aria-hidden />
+          전화하기
+        </a>
+        <a href="sms:109" className={cn(button, 'border border-cream-line bg-surface text-cocoa-900')}>
+          <ChatTeardropDotsIcon size={17} aria-hidden />
+          문자로 하기
+        </a>
+      </div>
+      <p className="mt-2.5 text-[12px] leading-relaxed text-taupe-500">위험한 상황이면 112·119로 연락해 줘.</p>
+    </div>
+  );
+}
 
 /** 오목이와 대화 (뼈대 UI). 대화는 이 기기에만 저장된다 */
 export function ChatScreen() {
@@ -112,16 +136,16 @@ export function ChatScreen() {
         )}
         <ul className="space-y-2">
           {messages?.map((m) => (
-            <li key={m.id} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
+            <li key={m.id} className={cn('flex flex-col', m.role === 'user' ? 'items-end' : 'items-start')}>
               <p
                 className={cn(
                   'max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed whitespace-pre-wrap',
                   m.role === 'user' ? 'rounded-tr-md bg-yellow-100' : 'rounded-tl-md border border-line bg-surface',
-                  m.crisis && 'border-danger',
                 )}
               >
                 {m.text}
               </p>
+              {m.crisis && <CrisisCard />}
             </li>
           ))}
         </ul>
