@@ -14,6 +14,7 @@ import { JarBanner } from '@/components/me/JarBanner';
 import { MusicButton } from '@/components/ui/RoundButton';
 import { todayKey } from '@/lib/date';
 import { currentJar, JAR_SIZE, shelfMoods } from '@/lib/jar';
+import { useLockScroll } from '@/lib/useLockScroll';
 import { useApp } from '@/lib/storage/useApp';
 import type { AppState } from '@/lib/storage/types';
 
@@ -70,7 +71,7 @@ function bubbleLine(state: AppState): { main: string; sub: string; href: string 
 /**
  * 홈: 오목이 집 (Figma "온기 · 홈 & 마음 마을"). 방 그림 위에 오늘의 마음날씨 → 선반 → 말풍선과 감정 친구들 → 오하아사 쪽지.
  * 그림 속 유리병에는 지금 병의 구슬, 선반 유리구슬 자리에는 다 찬 병들의 구슬이 채워진다 (로직은 lib/jar 그대로)
- * 방 그림이 화면 맨 위부터 탭 바까지 꽉 채우고, 상단 버튼들은 그림 위에 겹친다. 홈은 스크롤되지 않는다
+ * 방 그림이 화면 맨 위부터 탭 바까지 꽉 채우고, 상단 버튼들은 그림 위에 겹친다. 홈은 한 화면에 고정돼 스크롤되지 않는다
  * (화면이 길면 그림 좌우가, 짧으면 바닥 쪽이 조금 잘린다)
  */
 export function OmokRoom() {
@@ -78,8 +79,10 @@ export function OmokRoom() {
   const shelf = useApp((s) => shelfMoods(s.moods, SPHERES.length));
   const bubble = useApp(bubbleLine);
   const [jarOpen, setJarOpen] = useState(false);
+  useLockScroll();
 
   return (
+    // 휴대폰 한 화면 높이(h-dvh)에 고정하고 문서 스크롤을 막는다 (-mb-44: 탭 레이아웃의 아래 여백 상쇄)
     <section aria-label="오목이 집" className="relative -mb-44 h-dvh overflow-hidden bg-[#d99c67]">
       {/* 상단: 왼쪽 마을 안내(?), 가운데 오늘의 마음날씨, 오른쪽 내 기록(음표). 처음 온 사람에겐 안내가 한 번 저절로 열린다 */}
       <header className="absolute inset-x-0 top-0 z-20 grid grid-cols-[48px_1fr_48px] items-center gap-2 px-5 pt-[calc(env(safe-area-inset-top)+12px)]">
