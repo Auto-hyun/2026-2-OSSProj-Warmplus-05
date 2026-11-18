@@ -21,7 +21,9 @@ export type MoodEntry = {
 };
 
 /** 오목이와 나눈 대화 한 줄 */
-export type ChatMessage = { id: string; role: 'user' | 'omok'; text: string; at: string; crisis?: boolean };
+/** 오목이 말풍선에 붙는 바로가기 버튼 (서버가 목록에서 검증해 내려준 것) */
+export type ChatAction = { label: string; href: string };
+export type ChatMessage = { id: string; role: 'user' | 'omok'; text: string; at: string; crisis?: boolean; action?: ChatAction };
 
 /** 대화가 쌓이면 오목이가 정리해 두는 나에 대한 메모 (요약은 Claude API 연결 후) */
 export type OmokNote = { summary: string; updatedAt: string; messageCount: number };
