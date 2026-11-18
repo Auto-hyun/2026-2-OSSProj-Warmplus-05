@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { XIcon } from '@phosphor-icons/react';
+import { ArtIcon } from '@/components/ui/RoundButton';
 import { todayKey } from '@/lib/date';
 import { FortuneSection } from './FortuneSection';
 
@@ -50,11 +51,8 @@ export function FortuneNote({ className, style }: { className?: string; style?: 
         className={`transition-transform active:scale-[0.95] ${seenToday ? '' : 'motion-safe:animate-[note-wiggle_3.4s_ease-in-out_infinite]'} ${className ?? ''}`}
         style={style}
       >
-        <svg viewBox="0 0 64 50" aria-hidden className="h-auto w-full [filter:drop-shadow(0_6px_10px_rgba(80,55,20,0.28))]">
-          <rect x="2" y="8" width="60" height="38" rx="7" fill="#fffdf8" stroke="#e5d6bd" strokeWidth="1.5" />
-          <path d="M4 14 L32 32 L60 14" fill="none" stroke="#d9b98c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="32" cy="36" r="4.5" fill="#e8a7a0" />
-        </svg>
+        {/* 열린 편지 그림 (public/icons/fortune.webp) */}
+        <ArtIcon name="fortune" className="h-auto w-full" />
         {!seenToday && (
           <span aria-hidden className="absolute -top-1 -right-1 size-3.5 rounded-full bg-[#e0604f] ring-2 ring-[#fffdf8] motion-safe:animate-[glow-pulse_1.8s_ease-in-out_infinite]" />
         )}
